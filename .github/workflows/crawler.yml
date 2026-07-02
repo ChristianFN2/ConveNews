@@ -1,17 +1,49 @@
 name: Daily crawler
 
 on:
+  schedule:
+    # Every day at 03:00 UTC
+    - cron: "0 3 * * *"
+
   workflow_dispatch:
 
 jobs:
-  test:
+  crawl:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Show repository contents
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
         run: |
-          pwd
-          ls -R
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run crawler
+        run: |
+          python -m src.runners.run_crawler
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Crawler news data update"
+            git push
+          fi

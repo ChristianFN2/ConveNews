@@ -1,0 +1,6 @@
+# External dependencies required by the crawler pipeline.
+PyYAML==6.0.3
+feedparser==6.0.12
+python-dateutil==2.9.0.post0
+requests==2.34.2
+trafilatura==2.1.0
