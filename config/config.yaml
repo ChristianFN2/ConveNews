@@ -1,0 +1,9 @@
+crawler:
+  feed_urls_file: data/input/feed_urls.txt
+  collected_articles_file: data/output/collected_articles.jsonl
+  extracted_articles_file: data/output/extracted_articles.jsonl
+  stats_file: data/output/crawler_stats.jsonl
+  state_file: data/_state/extraction_state.jsonl
+  max_articles_per_feed: 700
+  collection_window_days: 7
+  extraction_retention_days: 7
