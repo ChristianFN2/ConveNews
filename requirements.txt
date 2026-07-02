@@ -4,3 +4,7 @@ feedparser==6.0.12
 python-dateutil==2.9.0.post0
 requests==2.34.2
 trafilatura==2.1.0
+
+# External dependencies required by the preprocessor
+langdetect==1.0.9
+spacy==3.8.13

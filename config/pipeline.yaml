@@ -7,3 +7,13 @@ crawler:
   max_articles_per_feed: 700
   collection_window_days: 7
   extraction_retention_days: 7
+
+preprocessor:
+  input_articles_file: data/output/extracted_articles.jsonl
+  processed_articles_file: data/output/processed_articles.jsonl
+  text_processing:
+    lowercase: true
+    lemmatize: true
+    remove_stopwords: true
+    remove_punctuation: true
+    alphabetic_only: true

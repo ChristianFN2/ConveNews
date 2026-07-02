@@ -1,4 +1,4 @@
-name: Daily crawler
+name: Daily application pipeline
 
 on:
   schedule:

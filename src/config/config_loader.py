@@ -3,12 +3,13 @@ from pathlib import Path
 import yaml
 
 from src.crawler.types import CrawlerConfig
-
+from src.preprocessor.types import PreprocessorConfig
 
 @dataclass
 class PipelineConfig:
     """Configuration for the whole application."""
     crawler: CrawlerConfig
+    preprocessor: PreprocessorConfig
 
 
 def _resolve_path(project_root: Path, path: str | None) -> Path | None:
@@ -34,6 +35,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
         raw = yaml.safe_load(f)
 
     crawler = raw["crawler"]
+    preprocessor = raw["preprocessor"]
 
     return PipelineConfig(
         crawler=CrawlerConfig(
@@ -45,5 +47,10 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             state_file=_resolve_path(project_root, crawler.get("state_file")),
             collection_window_days=crawler["collection_window_days"],
             extraction_retention_days=crawler["extraction_retention_days"]
+        ),
+        preprocessor=PreprocessorConfig(
+            input_articles_file=_resolve_path(project_root, preprocessor["extracted_articles_file"]),
+            processed_articles_file=_resolve_path(project_root, preprocessor["processed_articles_file"]),
+            text_processing=preprocessor["text_processing"]
         )
     )
