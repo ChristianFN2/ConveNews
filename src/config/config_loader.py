@@ -4,6 +4,7 @@ import yaml
 
 from src.crawler.types import CrawlerConfig
 from src.preprocessor.types import PreprocessorConfig
+from src.preprocessor.types import TextProcessing
 
 @dataclass
 class PipelineConfig:
@@ -51,6 +52,6 @@ def load_config(config_file: str | Path) -> PipelineConfig:
         preprocessor=PreprocessorConfig(
             input_articles_file=_resolve_path(project_root, preprocessor["input_articles_file"]),
             processed_articles_file=_resolve_path(project_root, preprocessor["processed_articles_file"]),
-            text_processing=preprocessor["text_processing"]
+            text_processing=TextProcessing(**preprocessor["text_processing"])
         )
     )

@@ -71,6 +71,12 @@ def _process_text(text: str, lang_code: str, text_processing: TextProcessing) ->
         else:
             processed = token.text
 
+        if text_processing.lowercase:
+            processed = processed.lower()
+
+        if not processed.strip():
+            continue
+
         tokens.append(processed)
 
     return " ".join(tokens)
