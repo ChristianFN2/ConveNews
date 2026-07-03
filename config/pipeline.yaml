@@ -17,3 +17,7 @@ preprocessor:
     remove_stopwords: true
     remove_punctuation: true
     alphabetic_only: true
+
+lexical_indexer:
+  input_articles_file: data/output/processed_articles.jsonl
+  index_dir: data/output/index

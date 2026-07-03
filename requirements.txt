@@ -9,3 +9,6 @@ trafilatura==2.1.0
 langdetect==1.0.9
 spacy==3.8.13
 click==8.4.2 # Required by spacy but not installed automatically
+
+# External dependencies required by the lexical indexer
+whoosh==2.7.4

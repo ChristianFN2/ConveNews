@@ -5,12 +5,14 @@ import yaml
 from src.crawler.types import CrawlerConfig
 from src.preprocessor.types import PreprocessorConfig
 from src.preprocessor.types import TextProcessing
+from src.lexical_indexer.types import LexicalIndexerConfig
 
 @dataclass
 class PipelineConfig:
     """Configuration for the whole application."""
     crawler: CrawlerConfig
     preprocessor: PreprocessorConfig
+    lexical_indexer: LexicalIndexerConfig
 
 
 def _resolve_path(project_root: Path, path: str | None) -> Path | None:
@@ -37,6 +39,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
 
     crawler = raw["crawler"]
     preprocessor = raw["preprocessor"]
+    lexical_indexer = raw["lexical_indexer"]
 
     return PipelineConfig(
         crawler=CrawlerConfig(
@@ -53,5 +56,9 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             input_articles_file=_resolve_path(project_root, preprocessor["input_articles_file"]),
             processed_articles_file=_resolve_path(project_root, preprocessor["processed_articles_file"]),
             text_processing=TextProcessing(**preprocessor["text_processing"])
+        ),
+        lexical_indexer=LexicalIndexerConfig(
+            input_articles_file=_resolve_path(project_root, lexical_indexer["input_articles_file"]),
+            index_dir=_resolve_path(project_root, lexical_indexer["index_dir"])
         )
     )
