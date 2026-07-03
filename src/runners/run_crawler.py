@@ -13,7 +13,7 @@ from src.crawler.main_crawler import crawl
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[2]
     / "config"
-    / "config.yaml"
+    / "pipeline.yaml"
 )
 
 

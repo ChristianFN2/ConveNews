@@ -13,7 +13,7 @@ from src.preprocessor.main_preprocessor import apply_preprocessing
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[2]
     / "config"
-    / "config.yaml"
+    / "pipeline.yaml"
 )
 
 
