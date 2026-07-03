@@ -49,7 +49,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             extraction_retention_days=crawler["extraction_retention_days"]
         ),
         preprocessor=PreprocessorConfig(
-            input_articles_file=_resolve_path(project_root, preprocessor["extracted_articles_file"]),
+            input_articles_file=_resolve_path(project_root, preprocessor["input_articles_file"]),
             processed_articles_file=_resolve_path(project_root, preprocessor["processed_articles_file"]),
             text_processing=preprocessor["text_processing"]
         )
