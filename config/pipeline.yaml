@@ -21,3 +21,5 @@ preprocessor:
 lexical_indexer:
   input_articles_file: data/output/processed_articles.jsonl
   index_dir: data/output/index
+  search:
+    max_results: 10
