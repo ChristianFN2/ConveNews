@@ -32,6 +32,8 @@ def generate_index(config: LexicalIndexerConfig) -> None:
     The processed content is indexed but not stored in the index, while the
     article metadata required to identify each document is stored.
     """
+    config.index_dir.mkdir(parents=True, exist_ok=True)
+
     if not index.exists_in(config.index_dir):
         idx = index.create_in(config.index_dir, SCHEMA)
     else:
