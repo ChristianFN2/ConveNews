@@ -40,6 +40,10 @@ jobs:
       - name: Run preprocessor
         run: |
           python -m src.runners.run_preprocessor
+      
+      - name: Run lexical indexer
+        run: |
+          python -m src.runners.run_lexical_indexer
 
       - name: Commit updated data
         run: |
