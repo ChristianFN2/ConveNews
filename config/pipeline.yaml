@@ -6,7 +6,7 @@ crawler:
   state_file: data/_state/extraction_state.jsonl
   max_articles_per_feed: 700
   collection_window_days: 7
-  extraction_retention_days: 7
+  extraction_retention_days: 365
 
 preprocessor:
   input_articles_file: data/output/extracted_articles.jsonl
