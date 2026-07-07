@@ -8,10 +8,14 @@ import feedparser
 import json
 import html
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from pathlib import Path
 
-from dateutil import parser as date_parser
+from src.utils.datetime_utils import (
+    parse_datetime,
+    datetime_to_iso,
+    utc_now
+)
 
 
 # -------------------------
@@ -60,24 +64,6 @@ def _clean_html(text: str) -> str:
     return " ".join(text.split())
 
 
-def _parse_date(entry: dict) -> datetime | None:
-    """
-    Parse RSS publication date into a timezone-aware datetime.
-    Supports multiple RSS formats.
-    """
-    raw_date = entry.get("published") or entry.get("updated")
-    if not raw_date:
-        return None
-
-    try:
-        dt = date_parser.parse(raw_date)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc)
-    except Exception:
-        return None
-
-
 # -------------------------
 # RSS parsing
 # -------------------------
@@ -87,42 +73,23 @@ def _parse_feed(feed_url: str, max_articles_per_feed: int) -> list[dict]:
     articles: list[dict] = []
 
     for entry in feed.entries[:max_articles_per_feed]:
-        published_dt = _parse_date(entry)
+        published_dt = parse_datetime(entry.get("published") or entry.get("updated"))
 
         article = {
             "title": entry.get("title", ""),
             "source": feed_url,
             "link": entry.get("link", ""),
-            "published": published_dt.isoformat() if published_dt else None,
+            "published": (
+                datetime_to_iso(published_dt)
+                if published_dt
+                else None
+            ),
             "summary": _clean_html(entry.get("summary", "")),
         }
 
         articles.append(article)
 
     return articles
-
-def _parse_publication_date(article: dict) -> datetime | None:
-    """
-    Parse the publication date of an article as a UTC datetime.
-
-    Args:
-        article:
-            Article whose publication date is to be parsed.
-
-    Returns:
-        The publication date as a timezone-aware UTC datetime, or None if the
-        date cannot be parsed.
-    """
-    try:
-        published = date_parser.parse(article.get("published", ""))
-
-        if published.tzinfo is None:
-            published = published.replace(tzinfo=timezone.utc)
-
-        return published.astimezone(timezone.utc)
-
-    except Exception:
-        return None
 
 
 # -------------------------
@@ -153,9 +120,9 @@ def collect_from_rss_feeds(
         max_articles_per_feed:
             Maximum number of articles to retrieve from each RSS feed.
 
-        retention_days:
-            Number of days articles are kept in the collection based on their
-            publication date.
+        collection_window_days:
+            Number of days to retain articles in the collection. Articles older
+            than this window will be discarded.
     """
 
     feed_urls = _load_feed_urls(feed_urls_file)
@@ -165,7 +132,7 @@ def collect_from_rss_feeds(
     existing_articles = _load_jsonl(collected_articles_file)
 
     # 2. Compute cutoff
-    cutoff = datetime.now(timezone.utc) - timedelta(days=collection_window_days)
+    cutoff = utc_now() - timedelta(days=collection_window_days)
 
     # 3. Filter existing articles
     seen_links: set[str] = set()
@@ -174,7 +141,7 @@ def collect_from_rss_feeds(
     for article in existing_articles:
         seen_links.add(article.get("link"))
 
-        published = _parse_publication_date(article)
+        published = parse_datetime(article.get("published"))
 
         if published is not None and published >= cutoff:
             filtered_articles.append(article)
@@ -192,7 +159,7 @@ def collect_from_rss_feeds(
             if not link or link in seen_links:
                 continue
 
-            published = _parse_publication_date(article)
+            published = parse_datetime(article.get("published"))
 
             if published is not None and published >= cutoff:
                 new_articles.append(article)
