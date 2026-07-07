@@ -2,9 +2,10 @@ import json
 
 from whoosh import index
 from whoosh.analysis import RegexTokenizer
-from whoosh.fields import ID, TEXT, Schema
+from whoosh.fields import DATETIME, ID, TEXT, Schema
 
 from src.lexical_indexer.types import LexicalIndexerConfig
+from src.utils.datetime_utils import parse_datetime
 
 
 INDEX_ANALYZER = RegexTokenizer()
@@ -13,6 +14,8 @@ SCHEMA = Schema(
     link=ID(stored=True, unique=True),
     title=TEXT(stored=True),
     source=TEXT(stored=True),
+    published=DATETIME(stored=True),
+    detected_language=ID(stored=True),
     processed_content=TEXT(analyzer=INDEX_ANALYZER),
 )
 
@@ -56,6 +59,8 @@ def generate_index(config: LexicalIndexerConfig) -> None:
                 link=link,
                 title=article.get("title", ""),
                 source=article.get("source", ""),
+                published=parse_datetime(article.get("published", "")),
+                detected_language=article.get("detected_language", ""),
                 processed_content=article.get("processed_content", ""),
             )
 

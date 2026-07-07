@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import yaml
 
+from src.llm.types import LLMConfig, PromptConfig
 from src.crawler.types import CrawlerConfig
 from src.preprocessor.types import PreprocessorConfig
 from src.preprocessor.types import TextProcessing
@@ -13,6 +14,7 @@ class PipelineConfig:
     crawler: CrawlerConfig
     preprocessor: PreprocessorConfig
     lexical_indexer: LexicalIndexerConfig
+    llm: LLMConfig
 
 
 def _resolve_path(project_root: Path, path: str | None) -> Path | None:
@@ -40,6 +42,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
     crawler = raw["crawler"]
     preprocessor = raw["preprocessor"]
     lexical_indexer = raw["lexical_indexer"]
+    llm = raw["llm"]
 
     return PipelineConfig(
         crawler=CrawlerConfig(
@@ -62,4 +65,19 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             index_dir=_resolve_path(project_root, lexical_indexer["index_dir"]),
             search=SearchConfig(**lexical_indexer["search"])
         ),
+        llm=LLMConfig(
+            model=llm["model"],
+            api_base=llm["api_base"],
+            temperature=llm["temperature"],
+            prompts=PromptConfig(
+                interest_summary=_resolve_path(
+                    project_root,
+                    llm["prompts"]["interest_summary"],
+                ),
+                query_generation=_resolve_path(
+                    project_root,
+                    llm["prompts"]["query_generation"],
+                ),
+            ),
+        )
     )

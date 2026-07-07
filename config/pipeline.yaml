@@ -23,3 +23,11 @@ lexical_indexer:
   index_dir: data/output/index
   search:
     max_results: 10
+
+llm:
+  model: qwen3.5:9b
+  api_base: http://156.35.160.78:4000
+  temperature: 0.1
+  prompts:
+    interest_summary: src/llm/prompts/interest_summary.txt
+    query_generation: src/llm/prompts/query_generation.txt

@@ -95,6 +95,7 @@ def _process_article(article: dict, text_processing: TextProcessing) -> dict | N
         "title": article.get("title", ""),
         "source": article.get("source", ""),
         "link": article.get("link", ""),
+        "published": article.get("published", ""),
         "detected_language": lang_code,
         "processed_content": processed_content,
     }
