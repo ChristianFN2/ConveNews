@@ -10,7 +10,14 @@ class PromptConfig:
 
 @dataclass
 class LLMConfig:
-    model: str
+    models: list[str]
     api_base: str
     temperature: float
+    max_retries: int
+    timeout: float
     prompts: PromptConfig
+
+@dataclass
+class LLMResponse:
+    text: str
+    model: str

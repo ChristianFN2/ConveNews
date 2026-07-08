@@ -25,9 +25,16 @@ lexical_indexer:
     max_results: 10
 
 llm:
-  model: qwen3.5:9b
+  models: 
+    - qwen3.5:9b
+    - gemma4:12b
+    - qwen3:8b
+    - llama3.2:latest
+    - deepseek-v2:16b
+  max_retries: 1
+  timeout: 20
   api_base: http://156.35.160.78:4000
   temperature: 0.1
   prompts:
-    interest_summary: src/llm/prompts/interest_summary.txt
-    query_generation: src/llm/prompts/query_generation.txt
+    interest_summary: src/llm/prompts/prompt_interest_summarizer.txt
+    query_generation: src/llm/prompts/prompt_query_generator.txt

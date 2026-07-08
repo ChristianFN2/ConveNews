@@ -66,9 +66,11 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             search=SearchConfig(**lexical_indexer["search"])
         ),
         llm=LLMConfig(
-            model=llm["model"],
+            models=llm["models"],
             api_base=llm["api_base"],
             temperature=llm["temperature"],
+            max_retries=llm["max_retries"],
+            timeout=llm["timeout"],
             prompts=PromptConfig(
                 interest_summary=_resolve_path(
                     project_root,
