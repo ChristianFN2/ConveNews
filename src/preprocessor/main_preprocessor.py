@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from langdetect import LangDetectException, detect
 import spacy
@@ -25,13 +26,12 @@ def _get_spacy_model(lang_code: str):
         try:
             _SPACY_MODELS[lang_code] = spacy.load(model_name)
         except OSError:
-            # Model not installed
             return None
     return _SPACY_MODELS[lang_code]
 
 
 def _detect_language(text: str) -> str:
-    """Detect language code from text. Returns 'unknown' if detection fails."""
+    """Detect language code from text."""
     try:
         lang = detect(text)
         return lang.split("-")[0] if lang else "unknown"
@@ -39,15 +39,20 @@ def _detect_language(text: str) -> str:
         return "unknown"
 
 
-def _process_text(text: str, lang_code: str, text_processing: TextProcessing) -> str:
+def _process_text(
+    text: str,
+    lang_code: str,
+    text_processing: TextProcessing,
+) -> str:
     """
-    Process text: lowercase, remove stopwords, lemmatize.
-    Returns processed text as space-separated lemmas.
+    Process text: lowercase, remove stopwords, remove punctuation,
+    optionally lemmatize and keep alphabetic tokens only.
     """
     if not text or lang_code == "unknown":
         return ""
 
     nlp = _get_spacy_model(lang_code)
+
     if not nlp:
         return ""
 
@@ -66,10 +71,11 @@ def _process_text(text: str, lang_code: str, text_processing: TextProcessing) ->
         if text_processing.alphabetic_only and not token.is_alpha:
             continue
 
-        if text_processing.lemmatize:
-            processed = token.lemma_
-        else:
-            processed = token.text
+        processed = (
+            token.lemma_
+            if text_processing.lemmatize
+            else token.text
+        )
 
         if text_processing.lowercase:
             processed = processed.lower()
@@ -81,7 +87,11 @@ def _process_text(text: str, lang_code: str, text_processing: TextProcessing) ->
 
     return " ".join(tokens)
 
-def _process_article(article: dict, text_processing: TextProcessing) -> dict | None:
+
+def _process_article(
+    article: dict,
+    text_processing: TextProcessing,
+) -> dict | None:
     """Preprocess a single article."""
     content = article.get("content", "")
 
@@ -89,7 +99,12 @@ def _process_article(article: dict, text_processing: TextProcessing) -> dict | N
         return None
 
     lang_code = _detect_language(content)
-    processed_content = _process_text(content, lang_code, text_processing)
+
+    processed_content = _process_text(
+        content,
+        lang_code,
+        text_processing,
+    )
 
     return {
         "title": article.get("title", ""),
@@ -101,28 +116,22 @@ def _process_article(article: dict, text_processing: TextProcessing) -> dict | N
     }
 
 
-def apply_preprocessing(config: PreprocessorConfig) -> None:
+def _load_processed_articles(
+    processed_articles_file: Path,
+) -> dict[str, dict]:
     """
-    Preprocess the extracted articles dataset.
-
-    Reads the input JSONL file specified in the configuration, preprocesses
-    each article independently and writes the resulting articles to the output
-    JSONL file.
-
-    Each line of the input file must contain a JSON object with, at minimum,
-    the following fields:
-
-        - title
-        - summary
-        - content
-        - source
-        - link
-        - published
-
-    Articles without content are skipped. Invalid JSON lines are ignored.
+    Load previously processed articles indexed by link.
     """
-    with open(config.input_articles_file, "r", encoding="utf-8") as infile, \
-         open(config.processed_articles_file, "w", encoding="utf-8") as outfile:
+    processed_articles: dict[str, dict] = {}
+
+    if not processed_articles_file.exists():
+        return processed_articles
+
+    with open(
+        processed_articles_file,
+        "r",
+        encoding="utf-8",
+    ) as infile:
 
         for line in infile:
             try:
@@ -130,10 +139,63 @@ def apply_preprocessing(config: PreprocessorConfig) -> None:
             except json.JSONDecodeError:
                 continue
 
-            processed_article = _process_article(article, config.text_processing)
+            link = article.get("link")
+
+            if link:
+                processed_articles[link] = article
+
+    return processed_articles
+
+
+def apply_preprocessing(config: PreprocessorConfig) -> None:
+    """
+    Preprocess the extracted articles dataset.
+
+    Previously processed articles are reused whenever possible.
+    Only newly extracted articles are processed again.
+    Articles no longer present in the extracted dataset are discarded.
+    """
+    processed_articles = _load_processed_articles(
+        config.processed_articles_file
+    )
+
+    with open(
+        config.input_articles_file,
+        "r",
+        encoding="utf-8",
+    ) as infile, open(
+        config.processed_articles_file,
+        "w",
+        encoding="utf-8",
+    ) as outfile:
+
+        for line in infile:
+
+            try:
+                article = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            link = article.get("link")
+
+            if not link:
+                continue
+
+            processed_article = processed_articles.get(link)
+
+            if processed_article is None:
+                processed_article = _process_article(
+                    article,
+                    config.text_processing,
+                )
 
             if processed_article is None:
                 continue
 
-            outfile.write(json.dumps(processed_article, ensure_ascii=False))
+            outfile.write(
+                json.dumps(
+                    processed_article,
+                    ensure_ascii=False,
+                )
+            )
             outfile.write("\n")
