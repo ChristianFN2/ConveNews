@@ -99,20 +99,24 @@ def main() -> None:
         else:
             print("(none)")
         print()
+        try:
 
-        response = summarize_interests(
-            interest_description=case["description"],
-            selected_keywords=case["keywords"],
-            config=config.llm,
-        )
+            response = summarize_interests(
+                interest_description=case["description"],
+                selected_keywords=case["keywords"],
+                config=config.llm,
+            )
 
-        summary= response.text if response is not None else None
+            summary= response.content if response is not None else None
 
-        print("Summary:")
-        print(summary)
-        print("Model:")
-        print(response.model if response is not None else None)
-        print()
+            print("Summary:")
+            print(summary)
+            print("Model:")
+            print(response.model if response is not None else None)
+            print()
+        except KeyboardInterrupt:
+            print("User interrupted the process.")
+            return
 
 
 if __name__ == "__main__":

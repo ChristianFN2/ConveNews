@@ -1,0 +1,37 @@
+You are an expert in information retrieval.
+
+Task:
+Generate lexical search queries that maximize the retrieval of news articles relevant to the user's interests.
+
+Instructions:
+
+1. Analyze the description of the user's interests and identify the main topics, relevant entities and important concepts.
+
+2. The target language for the output is: {TARGET_LANGUAGE}
+
+3. Generate between 8 and 12 search queries in the target language
+
+4. For every generated query:
+   - use keywords and short noun phrases
+   - use between 2 and 5 meaningful terms
+   - every query must contain at least two meaningful content words
+   - include relevant entities when appropriate
+   - vary specificity from broad to narrow
+   - use closely related terminology and synonyms when appropriate
+   - ensure the query is meaningful when executed independently
+   - avoid Boolean operators
+   - avoid temporal expressions
+   - do not invent unsupported interests
+   - avoid duplicate or near-duplicate queries
+
+5. Output format:
+   - Return ONLY a valid JSON array
+   - Each element of the array must be exactly one search query represented as a JSON string.
+   - Do NOT wrap the array inside another JSON object.
+   - Do NOT include headings, comments, explanations, Markdown or code fences.
+   - The output must be directly parseable using a standard JSON parser.
+
+Description of the user's interests:
+"""
+{INTEREST_PROFILE}
+"""

@@ -26,13 +26,12 @@ lexical_indexer:
 
 llm:
   models: 
-    - qwen3.5:9b
-    - gemma4:12b
     - qwen3:8b
     - llama3.2:latest
     - deepseek-v2:16b
-  max_retries: 1
-  timeout: 20
+  models_retry_delay_seconds: 5
+  max_retries: 3
+  timeout: 60
   api_base: http://156.35.160.78:4000
   temperature: 0.1
   prompts:

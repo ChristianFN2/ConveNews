@@ -3,7 +3,6 @@ Utilities for summarizing user interests using the configured LLM.
 """
 
 from src.llm.client import generate
-from src.llm.client import LLMUnavailableError
 from src.llm.types import LLMConfig, LLMResponse
 
 
@@ -11,7 +10,7 @@ def summarize_interests(
     interest_description: str,
     selected_keywords: list[str],
     config: LLMConfig,
-) -> LLMResponse | None:
+) -> LLMResponse[str] | None:
     """
     Generate a concise summary of the user's interests.
 
@@ -37,7 +36,4 @@ def summarize_interests(
         SELECTED_KEYWORDS=", ".join(selected_keywords),
     )
 
-    try:
-        return generate(prompt, config)
-    except LLMUnavailableError:
-        return None
+    return generate(prompt, config)

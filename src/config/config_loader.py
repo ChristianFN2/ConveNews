@@ -67,6 +67,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
         ),
         llm=LLMConfig(
             models=llm["models"],
+            models_retry_delay_seconds=llm["models_retry_delay_seconds"],
             api_base=llm["api_base"],
             temperature=llm["temperature"],
             max_retries=llm["max_retries"],
