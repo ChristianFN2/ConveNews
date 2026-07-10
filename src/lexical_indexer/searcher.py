@@ -1,5 +1,5 @@
 from whoosh import index
-from whoosh.qparser import MultifieldParser
+from whoosh.qparser import MultifieldParser, OrGroup
 
 from src.lexical_indexer.types import LexicalIndexerConfig
 from src.lexical_indexer.types import SearchResult
@@ -26,9 +26,15 @@ def search(
 
     idx = index.open_dir(index_config.index_dir)
 
+    SEARCH_FIELDS = [
+        "title",
+        "processed_content",
+    ]
+
     parser = MultifieldParser(
-        ["title", "processed_content"],
+        SEARCH_FIELDS,
         schema=idx.schema,
+        group=OrGroup,
     )
 
     query = parser.parse(query_text)
@@ -40,6 +46,7 @@ def search(
             SearchResult(
                 title=hit["title"],
                 source=hit["source"],
+                published=hit["published"],
                 link=hit["link"],
                 score=hit.score,
             )

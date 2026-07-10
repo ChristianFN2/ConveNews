@@ -2,6 +2,7 @@
 Development runner for testing the interest summarizer.
 """
 
+import json
 from pathlib import Path
 
 from src.config.config_loader import load_config
@@ -13,110 +14,91 @@ DEFAULT_CONFIG_FILE = (
     / "pipeline.yaml"
 )
 
+INPUT_FILE = (
+    Path(__file__).resolve().parent
+    / "data"
+    / "input"
+    / "user_interests.jsonl"
+)
+
+OUTPUT_FILE = (
+    Path(__file__).resolve().parent
+    / "data"
+    / "output"
+    / "interest_summaries.jsonl"
+)
+
 
 def main() -> None:
     """
-    Load the configuration and test the interest summarizer.
+    Generate interest summaries for the input user profiles.
+
+    The generated summaries are written to a JSONL file and also printed
+    to the console for inspection.
     """
     config = load_config(DEFAULT_CONFIG_FILE)
 
-    test_cases = [
-        {
-            "description": (
-                "I am interested in artificial intelligence, machine learning, "
-                "large language models, robotics and autonomous systems. "
-                "I also enjoy following scientific discoveries and space exploration."
-            ),
-            "keywords": [],
-        },
-        {
-            "description": (
-                "Me interesan la economía europea, la política internacional, "
-                "la transición energética y las energías renovables."
-            ),
-            "keywords": [
-                "European Union",
-                "European Central Bank",
-                "Renewable energy",
-                "Climate policy",
-            ],
-        },
-        {
-            "description": (
-                "I enjoy software engineering, distributed systems, "
-                "cybersecurity and cloud computing."
-            ),
-            "keywords": [
-                "Python",
-                "Docker",
-                "Kubernetes",
-                "AWS",
-            ],
-        },
-        {
-            "description": (
-                "Me interesa seguir la actualidad del FC Barcelona, "
-                "la Fórmula 1 y el tenis profesional."
-            ),
-            "keywords": [
-                "FC Barcelona",
-                "Formula 1",
-                "Carlos Alcaraz",
-                "ATP Tour",
-            ],
-        },
-        {
-            "description": (
-                "Me interesan los deportes."
-            ),
-            "keywords": [
-                "Formula 1",
-                "NBA",
-                "Carlos Alcaraz",
-                "Champions League",
-            ],
-        },
-        {
-            "description": (
-                "I like technology."
-            ),
-            "keywords": [],
-        },
-    ]
+    try:
 
-    for i, case in enumerate(test_cases, start=1):
-        print("=" * 80)
-        print(f"Test case {i}")
-        print()
+        with (
+            open(INPUT_FILE, "r", encoding="utf-8") as infile,
+            open(OUTPUT_FILE, "w", encoding="utf-8") as outfile,
+        ):
 
-        print("Description:")
-        print(case["description"])
-        print()
+            for i, line in enumerate(infile, start=1):
 
-        print("Selected keywords:")
-        if case["keywords"]:
-            print(", ".join(case["keywords"]))
-        else:
-            print("(none)")
-        print()
-        try:
+                try:
+                    profile = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
 
-            response = summarize_interests(
-                interest_description=case["description"],
-                selected_keywords=case["keywords"],
-                config=config.llm,
-            )
+                print("=" * 80)
+                print(f"Profile {i}")
+                print()
 
-            summary= response.content if response is not None else None
+                print("Interest description:")
+                print(profile["interest_description"])
+                print()
 
-            print("Summary:")
-            print(summary)
-            print("Model:")
-            print(response.model if response is not None else None)
-            print()
-        except KeyboardInterrupt:
-            print("User interrupted the process.")
-            return
+                print("Selected keywords:")
+                if profile["selected_keywords"]:
+                    print(", ".join(profile["selected_keywords"]))
+                else:
+                    print("(none)")
+                print()
+
+                response = summarize_interests(
+                    interest_description=profile["interest_description"],
+                    selected_keywords=profile["selected_keywords"],
+                    config=config.llm,
+                )
+
+                if response is None:
+                    print("Summary:")
+                    print("(generation failed)")
+                    print()
+                    continue
+
+                output_record = {
+                    **profile,
+                    "interest_summary": response.content,
+                    "model": response.model,
+                }
+
+                outfile.write(
+                    json.dumps(output_record, ensure_ascii=False)
+                )
+                outfile.write("\n")
+
+                print("Summary:")
+                print(response.content)
+                print()
+
+                print(f"Model: {response.model}")
+                print()
+
+    except KeyboardInterrupt:
+        print("\nExecution interrupted by user.")
 
 
 if __name__ == "__main__":

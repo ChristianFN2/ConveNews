@@ -16,5 +16,6 @@ class SearchResult:
     """Represents a lexical search result."""
     title: str
     source: str
+    published: str
     link: str
     score: float
