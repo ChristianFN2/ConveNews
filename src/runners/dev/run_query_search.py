@@ -9,6 +9,7 @@ from pathlib import Path
 from src.config.config_loader import load_config
 from src.lexical_indexer.searcher import search
 from src.utils.datetime_utils import datetime_to_iso
+from src.preprocessor.main_preprocessor import process_query
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[3]
@@ -86,7 +87,7 @@ def main() -> None:
                         start = time.perf_counter()
 
                         results = search(
-                            query_text=query,
+                            query_text=process_query(query,language,config.preprocessor.text_processing),
                             index_config=config.lexical_indexer,
                         )
 

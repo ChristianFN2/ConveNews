@@ -7,6 +7,7 @@ from src.crawler.types import CrawlerConfig
 from src.preprocessor.types import PreprocessorConfig
 from src.preprocessor.types import TextProcessing
 from src.lexical_indexer.types import LexicalIndexerConfig, SearchConfig
+from src.article_processor.types import ArticleProcessorConfig
 
 @dataclass
 class PipelineConfig:
@@ -15,6 +16,7 @@ class PipelineConfig:
     preprocessor: PreprocessorConfig
     lexical_indexer: LexicalIndexerConfig
     llm: LLMConfig
+    article_processor: ArticleProcessorConfig
 
 
 def _resolve_path(project_root: Path, path: str | None) -> Path | None:
@@ -43,6 +45,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
     preprocessor = raw["preprocessor"]
     lexical_indexer = raw["lexical_indexer"]
     llm = raw["llm"]
+    article_processor = raw["article_processor"]
 
     return PipelineConfig(
         crawler=CrawlerConfig(
@@ -82,5 +85,8 @@ def load_config(config_file: str | Path) -> PipelineConfig:
                     llm["prompts"]["query_generation"],
                 ),
             ),
-        )
+        ),
+        article_processor=ArticleProcessorConfig(
+            max_candidates=article_processor["max_candidates"]
+        ),
     )

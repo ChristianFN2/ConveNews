@@ -1,14 +1,14 @@
 from whoosh import index
-from whoosh.qparser import MultifieldParser, OrGroup
+from whoosh.qparser import MultifieldParser
 
 from src.lexical_indexer.types import LexicalIndexerConfig
-from src.lexical_indexer.types import SearchResult
+from src.lexical_indexer.types import RetrievedArticle
 
 
 def search(
     query_text: str,
     index_config: LexicalIndexerConfig,
-) -> list[SearchResult]:
+) -> list[RetrievedArticle]:
     """
     Search the lexical index for the given query.
 
@@ -34,7 +34,6 @@ def search(
     parser = MultifieldParser(
         SEARCH_FIELDS,
         schema=idx.schema,
-        group=OrGroup,
     )
 
     query = parser.parse(query_text)
@@ -43,7 +42,7 @@ def search(
         hits = searcher.search(query, limit=index_config.search.max_results)
 
         return [
-            SearchResult(
+            RetrievedArticle(
                 title=hit["title"],
                 source=hit["source"],
                 published=hit["published"],

@@ -1,7 +1,7 @@
 You are an expert in information retrieval.
 
 Task:
-Generate lexical search queries that maximize the retrieval of news articles relevant to the user's interests.
+Generate concise keyword-based lexical search queries optimized for retrieving news articles relevant to the user's interests
 
 Instructions:
 
@@ -12,17 +12,18 @@ Instructions:
 3. Generate between 8 and 12 search queries in the target language
 
 4. For every generated query:
-   - use keywords and short noun phrases
-   - use between 2 and 5 meaningful terms
-   - every query must contain at least two meaningful content words
-   - include relevant entities when appropriate
+   - use concise lexical search queries
+   - prefer the shortest query that uniquely identifies the target topic
+   - most queries should contain one or two meaningful terms
+   - when a named entity or selected keyword already forms a strong search query, use it directly
+   - keep named entities intact, even if they contain more than two terms
    - vary specificity from broad to narrow
-   - use closely related terminology and synonyms when appropriate
    - ensure the query is meaningful when executed independently
    - avoid Boolean operators
    - avoid temporal expressions
    - do not invent unsupported interests
    - avoid duplicate or near-duplicate queries
+   - do not add descriptive terms unless they significantly improve retrieval precision
 
 5. Output format:
    - Return ONLY a valid JSON array

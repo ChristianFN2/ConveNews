@@ -12,10 +12,14 @@ class SearchConfig:
     max_results: int
 
 @dataclass
-class SearchResult:
-    """Represents a lexical search result."""
+class RetrievedArticle:
     title: str
     source: str
     published: str
     link: str
     score: float
+
+@dataclass
+class QueryResult:
+    query: str
+    results: list[RetrievedArticle]

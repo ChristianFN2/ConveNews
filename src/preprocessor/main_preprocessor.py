@@ -199,3 +199,16 @@ def apply_preprocessing(config: PreprocessorConfig) -> None:
                 )
             )
             outfile.write("\n")
+
+def process_query(query: str, lang_code: str, text_processing: TextProcessing) -> str:
+    """
+    Preprocess a query string
+    """
+
+    processed_query = _process_text(
+        query,
+        lang_code,
+        text_processing,
+    )
+
+    return processed_query
