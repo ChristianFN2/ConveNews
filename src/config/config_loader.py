@@ -84,6 +84,10 @@ def load_config(config_file: str | Path) -> PipelineConfig:
                     project_root,
                     llm["prompts"]["query_generation"],
                 ),
+                relevance_evaluation=_resolve_path(
+                    project_root,
+                    llm["prompts"]["relevance_evaluation"],
+                )
             ),
         ),
         article_processor=ArticleProcessorConfig(

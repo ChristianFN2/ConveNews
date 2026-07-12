@@ -9,6 +9,7 @@ ContentT = TypeVar("ContentT")
 class PromptConfig:
     interest_summary: Path
     query_generation: Path
+    relevance_evaluation: Path
 
 
 @dataclass
@@ -25,3 +26,8 @@ class LLMConfig:
 class LLMResponse(Generic[ContentT]):
     content: ContentT
     model: str
+
+@dataclass
+class ArticleEvaluation:
+    relevance_score: float
+    article_summary: str

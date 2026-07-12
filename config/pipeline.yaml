@@ -37,6 +37,7 @@ llm:
   prompts:
     interest_summary: src/llm/prompts/prompt_interest_summarizer.txt
     query_generation: src/llm/prompts/prompt_query_generator.txt
+    relevance_evaluation: src/llm/prompts/prompt_relevance_evaluator.txt
 
 article_processor:
   max_candidates: 15
