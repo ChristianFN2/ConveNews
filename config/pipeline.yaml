@@ -27,10 +27,10 @@ lexical_indexer:
 llm:
   models: 
     - qwen3:8b
-    - llama3.2:latest
-    - deepseek-v2:16b
+    - gemma4:12b
+    
   models_retry_delay_seconds: 5
-  max_retries: 3
+  max_retries: 2
   timeout: 60
   api_base: http://156.35.160.78:4000
   temperature: 0.1
@@ -40,4 +40,7 @@ llm:
     relevance_evaluation: src/llm/prompts/prompt_relevance_evaluator.txt
 
 article_processor:
-  max_candidates: 15
+  selection_margin: 3
+
+newsletter:
+  max_articles: 5

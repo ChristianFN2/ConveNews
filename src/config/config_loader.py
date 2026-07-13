@@ -8,6 +8,7 @@ from src.preprocessor.types import PreprocessorConfig
 from src.preprocessor.types import TextProcessing
 from src.lexical_indexer.types import LexicalIndexerConfig, SearchConfig
 from src.article_processor.types import ArticleProcessorConfig
+from src.newsletter.types import NewsletterConfig
 
 @dataclass
 class PipelineConfig:
@@ -17,6 +18,7 @@ class PipelineConfig:
     lexical_indexer: LexicalIndexerConfig
     llm: LLMConfig
     article_processor: ArticleProcessorConfig
+    newsletter: NewsletterConfig
 
 
 def _resolve_path(project_root: Path, path: str | None) -> Path | None:
@@ -46,6 +48,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
     lexical_indexer = raw["lexical_indexer"]
     llm = raw["llm"]
     article_processor = raw["article_processor"]
+    newsletter = raw["newsletter"]
 
     return PipelineConfig(
         crawler=CrawlerConfig(
@@ -91,6 +94,9 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             ),
         ),
         article_processor=ArticleProcessorConfig(
-            max_candidates=article_processor["max_candidates"]
+            selection_margin=article_processor["selection_margin"]
         ),
+        newsletter=NewsletterConfig(
+            max_articles=newsletter["max_articles"]
+        )
     )

@@ -97,10 +97,15 @@ def main() -> None:
                             )
                         )
 
+                    candidate_limit = (
+                        config.newsletter.max_articles
+                        + config.article_processor.selection_margin
+                    )
+
                     candidates = select_candidate_articles(
                         query_results=parsed_query_results,
                         max_articles=(
-                            config.article_processor.max_candidates
+                            candidate_limit
                         ),
                     )
 
