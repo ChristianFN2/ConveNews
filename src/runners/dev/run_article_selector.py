@@ -131,6 +131,11 @@ def main() -> None:
                 output_record = {
                     "user_id": record["user_id"],
                     "profile_id": record["profile_id"],
+                    "profile_title": record["profile_title"],
+                    "target_language": record["target_language"],
+                    "interest_description": (
+                        record["interest_description"]
+                    ),
                     "selected_keywords": record["selected_keywords"],
                     "interest_summary": record["interest_summary"],
                     "queries": record["queries"],

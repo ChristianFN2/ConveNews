@@ -52,3 +52,9 @@ def utc_now() -> datetime:
     Return the current UTC time as a timezone-aware datetime.
     """
     return datetime.now(timezone.utc)
+
+def get_current_day() -> str:
+    """
+    Returns today's date in ISO format (YYYY-MM-DD).
+    """
+    return utc_now().date().isoformat()

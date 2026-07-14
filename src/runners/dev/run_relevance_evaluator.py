@@ -175,6 +175,9 @@ def main() -> None:
                 output_record = {
                     "user_id": record["user_id"],
                     "profile_id": record["profile_id"],
+                    "interest_description": (
+                        record["interest_description"]
+                    ),
                     "interest_summary": (
                         record["interest_summary"]
                     ),

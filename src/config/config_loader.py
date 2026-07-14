@@ -97,6 +97,7 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             selection_margin=article_processor["selection_margin"]
         ),
         newsletter=NewsletterConfig(
-            max_articles=newsletter["max_articles"]
+            max_articles=newsletter["max_articles"],
+            relevance_threshold=newsletter["relevance_threshold"]
         )
     )
