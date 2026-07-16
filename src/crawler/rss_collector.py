@@ -51,19 +51,6 @@ def _write_jsonl(file_path: Path, articles: list[dict]) -> None:
         for article in articles:
             f.write(json.dumps(article, ensure_ascii=False) + "\n")
 
-
-# -------------------------
-# Cleaning / parsing
-# -------------------------
-
-def _clean_html(text: str) -> str:
-    if not text:
-        return ""
-    text = html.unescape(text)
-    text = re.sub(r"<[^>]+>", "", text)
-    return " ".join(text.split())
-
-
 # -------------------------
 # RSS parsing
 # -------------------------
@@ -84,7 +71,6 @@ def _parse_feed(feed_url: str, max_articles_per_feed: int) -> list[dict]:
                 if published_dt
                 else None
             ),
-            "summary": _clean_html(entry.get("summary", "")),
         }
 
         articles.append(article)
