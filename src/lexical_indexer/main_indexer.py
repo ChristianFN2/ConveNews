@@ -12,7 +12,8 @@ INDEX_ANALYZER = RegexTokenizer()
 
 SCHEMA = Schema(
     link=ID(stored=True, unique=True),
-    title=TEXT(stored=True, analyzer=INDEX_ANALYZER),
+    title=TEXT(stored=True),
+    processed_title=TEXT(stored=False, analyzer=INDEX_ANALYZER),
     source=TEXT(stored=True),
     published=DATETIME(stored=True),
     detected_language=ID(stored=True),
@@ -27,10 +28,12 @@ def generate_index(config: LexicalIndexerConfig) -> None:
     The input file must contain one JSON object per line with, at minimum,
     the following fields:
 
-        - title
+        - processed_title
         - source
+        - published
         - link
         - processed_content
+        - detected_language
 
     The processed content is indexed but not stored in the index, while the
     article metadata required to identify each document is stored.
@@ -58,6 +61,7 @@ def generate_index(config: LexicalIndexerConfig) -> None:
             writer.update_document(
                 link=link,
                 title=article.get("title", ""),
+                processed_title=article.get("processed_title", ""),
                 source=article.get("source", ""),
                 published=parse_datetime(article.get("published", "")),
                 detected_language=article.get("detected_language", ""),

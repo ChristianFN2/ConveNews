@@ -27,7 +27,7 @@ def search(
     idx = index.open_dir(index_config.index_dir)
 
     SEARCH_FIELDS = [
-        "title",
+        "processed_title",
         "processed_content",
     ]
 

@@ -106,8 +106,15 @@ def _process_article(
         text_processing,
     )
 
+    processed_title = _process_text(
+        article.get("title", ""),
+        lang_code,
+        text_processing,
+    )
+
     return {
         "title": article.get("title", ""),
+        "processed_title": processed_title,
         "source": article.get("source", ""),
         "link": article.get("link", ""),
         "published": article.get("published", ""),
