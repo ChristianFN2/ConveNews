@@ -8,7 +8,7 @@ index and allows interactive keyword searches.
 from pathlib import Path
 
 from src.config.config_loader import load_config
-from src.lexical_indexer.searcher import search
+from src.services.lexical_indexer.searcher import search
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[3]

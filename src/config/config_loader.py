@@ -2,13 +2,13 @@ from dataclasses import dataclass
 from pathlib import Path
 import yaml
 
-from src.llm.types import LLMConfig, PromptConfig
-from src.crawler.types import CrawlerConfig
-from src.preprocessor.types import PreprocessorConfig
-from src.preprocessor.types import TextProcessing
-from src.lexical_indexer.types import LexicalIndexerConfig, SearchConfig
-from src.article_processor.types import ArticleProcessorConfig
-from src.newsletter.types import NewsletterConfig
+from src.services.llm.types import LLMConfig, PromptConfig
+from src.services.crawler.types import CrawlerConfig
+from src.services.preprocessor.types import PreprocessorConfig
+from src.services.preprocessor.types import TextProcessing
+from src.services.lexical_indexer.types import LexicalIndexerConfig, SearchConfig
+from src.services.article_processor.types import ArticleProcessorConfig
+from src.services.newsletter.types import NewsletterConfig
 
 @dataclass
 class PipelineConfig:
@@ -97,7 +97,6 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             selection_margin=article_processor["selection_margin"]
         ),
         newsletter=NewsletterConfig(
-            max_articles=newsletter["max_articles"],
             relevance_threshold=newsletter["relevance_threshold"]
         )
     )

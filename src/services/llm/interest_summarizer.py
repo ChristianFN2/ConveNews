@@ -2,8 +2,8 @@
 Utilities for summarizing user interests using the configured LLM.
 """
 
-from src.llm.client import generate
-from src.llm.types import LLMConfig, LLMResponse
+from src.services.llm.client import generate
+from src.services.llm.types import LLMConfig, LLMResponse
 
 
 def summarize_interests(

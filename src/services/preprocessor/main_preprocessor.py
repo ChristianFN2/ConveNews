@@ -4,7 +4,7 @@ from pathlib import Path
 from langdetect import LangDetectException, detect
 import spacy
 
-from src.preprocessor.types import PreprocessorConfig, TextProcessing
+from src.services.preprocessor.types import PreprocessorConfig, TextProcessing
 
 
 # Map language codes to spaCy models

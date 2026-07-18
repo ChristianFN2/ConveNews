@@ -8,7 +8,7 @@ configuration file and executes the complete preprocessing process.
 from pathlib import Path
 
 from src.config.config_loader import load_config
-from src.preprocessor.main_preprocessor import apply_preprocessing
+from src.services.preprocessor.main_preprocessor import apply_preprocessing
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[2]

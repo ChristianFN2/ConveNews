@@ -6,9 +6,9 @@ from dataclasses import asdict
 from pathlib import Path
 import re
 
-from src.newsletter.templates.localization import LOCALIZATION
-from src.newsletter.types import Newsletter, NewsletterContent, NewsletterConfig, NewsletterArticle
-from src.newsletter.sources import NEWS_SOURCES
+from src.services.newsletter.templates.localization import LOCALIZATION
+from src.services.newsletter.types import Newsletter, NewsletterContent, NewsletterConfig, NewsletterArticle
+from src.services.newsletter.sources import NEWS_SOURCES
 
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"

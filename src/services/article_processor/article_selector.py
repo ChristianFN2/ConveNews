@@ -16,7 +16,7 @@ This guarantees article diversity while favouring the most relevant
 results returned by the lexical search engine.
 """
 
-from src.lexical_indexer.types import RetrievedArticle, QueryResult
+from src.services.lexical_indexer.types import RetrievedArticle, QueryResult
 
 
 def select_candidate_articles(

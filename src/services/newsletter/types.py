@@ -3,7 +3,6 @@ from datetime import datetime
 
 @dataclass
 class NewsletterConfig:
-    max_articles: int
     relevance_threshold: float
 
 @dataclass

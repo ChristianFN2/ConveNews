@@ -4,7 +4,7 @@ from whoosh import index
 from whoosh.analysis import RegexTokenizer
 from whoosh.fields import DATETIME, ID, TEXT, Schema
 
-from src.lexical_indexer.types import LexicalIndexerConfig
+from src.services.lexical_indexer.types import LexicalIndexerConfig
 from src.utils.datetime_utils import parse_datetime
 
 

@@ -8,7 +8,7 @@ import time
 from llama_index.llms.openai_like import OpenAILike
 from openai import APIConnectionError, APITimeoutError
 
-from src.llm.types import LLMConfig, LLMResponse
+from src.services.llm.types import LLMConfig, LLMResponse
 
 
 API_KEY_ENVIRONMENT_VARIABLE = "CONVENEWS_API_KEY"

@@ -4,8 +4,8 @@ Utilities for generating lexical search queries using the configured LLM.
 
 import json
 
-from src.llm.client import generate
-from src.llm.types import LLMConfig, LLMResponse
+from src.services.llm.client import generate
+from src.services.llm.types import LLMConfig, LLMResponse
 
 
 def _generate_queries_for_language(
@@ -82,7 +82,7 @@ def _generate_queries_for_language(
 
 def generate_queries(
     interest_profile: str,
-    target_languages: list[str],
+    source_languages: list[str],
     config: LLMConfig,
 ) -> LLMResponse[dict[str, list[str]]] | None:
     """
@@ -105,7 +105,7 @@ def generate_queries(
     queries_by_language: dict[str, list[str]] = {}
     models_used: list[str] = []
 
-    for language in target_languages:
+    for language in source_languages:
 
         response = _generate_queries_for_language(
             interest_profile=interest_profile,

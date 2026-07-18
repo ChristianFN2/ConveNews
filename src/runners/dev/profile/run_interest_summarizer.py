@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from src.config.config_loader import load_config
-from src.llm.interest_summarizer import summarize_interests
+from src.services.llm.interest_summarizer import summarize_interests
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[3]
@@ -18,7 +18,7 @@ INPUT_FILE = (
     Path(__file__).resolve().parent
     / "data"
     / "input"
-    / "user_interests.jsonl"
+    / "newsletter_profiles.jsonl"
 )
 
 OUTPUT_FILE = (
@@ -80,7 +80,14 @@ def main() -> None:
                     continue
 
                 output_record = {
-                    **profile,
+                    "user_id": profile["user_id"],
+                    "profile_id": profile["profile_id"],
+                    "target_language": profile["target_language"],
+                    "target_article_num": profile["target_article_num"],
+                    "included_sources": profile["included_sources"],
+                    "covered_time_period_days": profile["covered_time_period_days"],
+                    "reading_time_minutes": profile["reading_time_minutes"],
+                    "source_languages": profile["source_languages"],
                     "interest_summary": response.content,
                     "model": response.model,
                 }

@@ -6,11 +6,11 @@ import json
 import time
 from pathlib import Path
 
-from src.article_processor.article_selector import (
+from src.services.article_processor.article_selector import (
     select_candidate_articles,
 )
 from src.config.config_loader import load_config
-from src.lexical_indexer.types import (
+from src.services.lexical_indexer.types import (
     QueryResult,
     RetrievedArticle,
 )

@@ -35,13 +35,12 @@ llm:
   api_base: http://156.35.160.78:4000
   temperature: 0.1
   prompts:
-    interest_summary: src/llm/prompts/prompt_interest_summarizer.txt
-    query_generation: src/llm/prompts/prompt_query_generator.txt
-    relevance_evaluation: src/llm/prompts/prompt_relevance_evaluator.txt
+    interest_summary: src/services/llm/prompts/prompt_interest_summarizer.txt
+    query_generation: src/services/llm/prompts/prompt_query_generator.txt
+    relevance_evaluation: src/services/llm/prompts/prompt_relevance_evaluator.txt
 
 article_processor:
   selection_margin: 3
 
 newsletter:
-  max_articles: 5
   relevance_threshold: 5.0

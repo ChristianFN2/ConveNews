@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from src.config.config_loader import load_config
-from src.llm.query_generator import generate_queries
+from src.services.llm.query_generator import generate_queries
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[3]
@@ -73,7 +73,7 @@ def main() -> None:
 
                 response = generate_queries(
                     interest_profile=record["interest_summary"],
-                    target_languages=record["target_languages"],
+                    source_languages=record["source_languages"],
                     config=config.llm,
                 )
 
@@ -85,7 +85,13 @@ def main() -> None:
                     continue
 
                 output_record = {
-                    **record,
+                    "user_id": record["user_id"],
+                    "profile_id": record["profile_id"],
+                    "target_language": record["target_language"],
+                    "target_article_num": record["target_article_num"],
+                    "included_sources": record["included_sources"],
+                    "covered_time_period_days": record["covered_time_period_days"],
+                    "reading_time_minutes": record["reading_time_minutes"],
                     "queries": response.content,
                     "model": response.model,
                 }

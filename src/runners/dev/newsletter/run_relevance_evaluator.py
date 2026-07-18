@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from src.config.config_loader import load_config
-from src.llm.relevance_evaluator import evaluate_relevance
+from src.services.llm.relevance_evaluator import evaluate_relevance
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[3]

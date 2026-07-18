@@ -8,10 +8,10 @@ from pathlib import Path
 import time
 
 from src.config.config_loader import load_config
-from src.newsletter.newsletter_builder import (
+from src.services.newsletter.newsletter_builder import (
     build_newsletter,
 )
-from src.newsletter.types import (
+from src.services.newsletter.types import (
     NewsletterContent, NewsletterArticle
 )
 

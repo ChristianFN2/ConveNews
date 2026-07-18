@@ -1,8 +1,8 @@
 from whoosh import index
 from whoosh.qparser import MultifieldParser
 
-from src.lexical_indexer.types import LexicalIndexerConfig
-from src.lexical_indexer.types import RetrievedArticle
+from src.services.lexical_indexer.types import LexicalIndexerConfig
+from src.services.lexical_indexer.types import RetrievedArticle
 
 
 def search(

@@ -8,7 +8,7 @@ configuration file and executes the complete indexing process.
 from pathlib import Path
 
 from src.config.config_loader import load_config
-from src.lexical_indexer.main_indexer import generate_index
+from src.services.lexical_indexer.main_indexer import generate_index
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[2]
