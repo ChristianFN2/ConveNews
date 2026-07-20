@@ -10,5 +10,3 @@ class CrawlerConfig:
     max_articles_per_feed: int
     collection_window_days: int
     extraction_retention_days: int
-    stats_file: Path
-    state_file: Path

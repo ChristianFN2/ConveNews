@@ -51,13 +51,31 @@ class ArticleRepository:
             for article in collected_articles
         ]
 
-        self._save_jsonl_file(
+        self._save_to_jsonl_file(
             self.collected_articles_file,
             records,
         )
 
+    def load_extracted_articles(
+        self,
+    ) -> list[ExtractedArticle]:
+
+        records = self._load_jsonl_file(
+            self.extracted_articles_file
+        )
+
+        return [
+            ExtractedArticle(
+                title=record["title"],
+                source=record["source"],
+                link=record["link"],
+                published=record["published"],
+                content=record["content"]
+            )
+            for record in records
+        ]
     
-    def save_extracted_articles(
+    def append_extracted_articles(
         self,
         extracted_articles: list[ExtractedArticle],
     ) -> None:
@@ -73,9 +91,29 @@ class ArticleRepository:
             for article in extracted_articles
         ]
 
-        self._save_jsonl_file(
+        self._append_to_jsonl_file(
             self.extracted_articles_file,
             records,
+        )
+
+    def remove_extracted_articles(
+        self,
+        extracted_articles: list[ExtractedArticle]
+    ) -> None:
+        removed_links = {
+            article.link
+            for article in extracted_articles
+        }
+
+        remaining_articles = [
+            article
+            for article in self.load_extracted_articles()
+            if article.link not in removed_links
+        ]
+
+        self._save_jsonl(
+            self.extracted_articles_file,
+            remaining_articles,
         )
 
     def _load_jsonl_file(
@@ -93,7 +131,7 @@ class ArticleRepository:
                 for line in file
             ]
     
-    def _save_jsonl_file(
+    def _save_to_jsonl_file(
         self,
         file_path: Path,
         records: list[dict],
@@ -101,6 +139,27 @@ class ArticleRepository:
 
         with file_path.open(
             "w",
+            encoding="utf-8",
+        ) as file:
+
+            for record in records:
+                file.write(
+                    json.dumps(
+                        record,
+                        ensure_ascii=False,
+                    )
+                )
+
+                file.write("\n")
+    
+    def _append_to_jsonl_file(
+        self,
+        file_path: Path,
+        records: list[dict],
+    ) -> None:
+
+        with file_path.open(
+            "a",
             encoding="utf-8",
         ) as file:
 
