@@ -6,14 +6,9 @@ import json
 import time
 from pathlib import Path
 
-from src.config.config_loader import load_config
+from src.config.config_loader import load_llm_config
 from src.services.llm.query_generator import generate_queries
 
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
 
 INPUT_FILE = (
     Path(__file__).resolve().parent
@@ -37,7 +32,7 @@ def main() -> None:
     The generated queries are written to a JSONL file and also printed
     to the console for inspection.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    config = load_llm_config()
 
     try:
 
@@ -74,7 +69,7 @@ def main() -> None:
                 response = generate_queries(
                     interest_profile=record["interest_summary"],
                     source_languages=record["source_languages"],
-                    config=config.llm,
+                    config=config,
                 )
 
                 elapsed = time.perf_counter() - start

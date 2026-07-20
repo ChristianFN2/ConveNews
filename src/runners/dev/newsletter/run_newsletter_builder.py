@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import time
 
-from src.config.config_loader import load_config
+from src.config.config_loader import load_newsletter_config
 from src.services.newsletter.newsletter_builder import (
     build_newsletter,
 )
@@ -15,12 +15,6 @@ from src.services.newsletter.types import (
     NewsletterContent, NewsletterArticle
 )
 
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
 
 INPUT_FILE = (
     Path(__file__).resolve().parent
@@ -54,9 +48,7 @@ def main() -> None:
     Build one newsletter for every user profile.
     """
 
-    config = load_config(
-        DEFAULT_CONFIG_FILE,
-    )
+    config = load_newsletter_config()
 
     with (
         open(
@@ -133,7 +125,7 @@ def main() -> None:
 
             newsletter = build_newsletter(
                 content,
-                config=config.newsletter,
+                config=config,
             )
 
             print(

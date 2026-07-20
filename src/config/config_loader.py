@@ -10,15 +10,13 @@ from src.services.lexical_indexer.types import LexicalIndexerConfig, SearchConfi
 from src.services.article_processor.types import ArticleProcessorConfig
 from src.services.newsletter.types import NewsletterConfig
 
-@dataclass
-class PipelineConfig:
-    """Configuration for the whole application."""
-    crawler: CrawlerConfig
-    preprocessor: PreprocessorConfig
-    lexical_indexer: LexicalIndexerConfig
-    llm: LLMConfig
-    article_processor: ArticleProcessorConfig
-    newsletter: NewsletterConfig
+DEFAULT_CONFIG_FILE = (
+    Path(__file__).resolve().parents[2]
+    / "config"
+    / "pipeline.yaml"
+)
+
+PROJECT_ROOT = DEFAULT_CONFIG_FILE.parent.parent
 
 
 def _resolve_path(project_root: Path, path: str | None) -> Path | None:
@@ -30,48 +28,54 @@ def _resolve_path(project_root: Path, path: str | None) -> Path | None:
     return (project_root / path).resolve()
 
 
-def load_config(config_file: str | Path) -> PipelineConfig:
-    """
-    Load application configuration from YAML.
-
-    Paths in the YAML are relative to the project root.
-    """
-    config_file = Path(config_file).resolve()
-
-    project_root = config_file.parent.parent  # config/ -> project root
-
-    with config_file.open("r", encoding="utf-8") as f:
+def load_crawler_config() -> CrawlerConfig:
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
 
     crawler = raw["crawler"]
-    preprocessor = raw["preprocessor"]
-    lexical_indexer = raw["lexical_indexer"]
-    llm = raw["llm"]
-    article_processor = raw["article_processor"]
-    newsletter = raw["newsletter"]
 
-    return PipelineConfig(
-        crawler=CrawlerConfig(
-            feed_urls_file=_resolve_path(project_root, crawler["feed_urls_file"]),
-            collected_articles_file=_resolve_path(project_root, crawler["collected_articles_file"]),
-            extracted_articles_file=_resolve_path(project_root, crawler["extracted_articles_file"]),
-            stats_file=_resolve_path(project_root, crawler.get("stats_file")),
+    return CrawlerConfig(
+            feed_urls_file=_resolve_path(PROJECT_ROOT, crawler["feed_urls_file"]),
+            collected_articles_file=_resolve_path(PROJECT_ROOT, crawler["collected_articles_file"]),
+            extracted_articles_file=_resolve_path(PROJECT_ROOT, crawler["extracted_articles_file"]),
+            stats_file=_resolve_path(PROJECT_ROOT, crawler.get("stats_file")),
             max_articles_per_feed=crawler["max_articles_per_feed"],
-            state_file=_resolve_path(project_root, crawler.get("state_file")),
+            state_file=_resolve_path(PROJECT_ROOT, crawler.get("state_file")),
             collection_window_days=crawler["collection_window_days"],
             extraction_retention_days=crawler["extraction_retention_days"]
-        ),
-        preprocessor=PreprocessorConfig(
-            input_articles_file=_resolve_path(project_root, preprocessor["input_articles_file"]),
-            processed_articles_file=_resolve_path(project_root, preprocessor["processed_articles_file"]),
+        )
+
+def load_preprocessor_config() -> PreprocessorConfig:
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    preprocessor = raw["preprocessor"]
+
+    return PreprocessorConfig(
+            input_articles_file=_resolve_path(PROJECT_ROOT, preprocessor["input_articles_file"]),
+            processed_articles_file=_resolve_path(PROJECT_ROOT, preprocessor["processed_articles_file"]),
             text_processing=TextProcessing(**preprocessor["text_processing"])
-        ),
-        lexical_indexer=LexicalIndexerConfig(
-            input_articles_file=_resolve_path(project_root, lexical_indexer["input_articles_file"]),
-            index_dir=_resolve_path(project_root, lexical_indexer["index_dir"]),
+        )
+
+def load_lexical_indexer_config() -> LexicalIndexerConfig:
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    lexical_indexer = raw["lexical_indexer"]
+
+    return LexicalIndexerConfig(
+            input_articles_file=_resolve_path(PROJECT_ROOT, lexical_indexer["input_articles_file"]),
+            index_dir=_resolve_path(PROJECT_ROOT, lexical_indexer["index_dir"]),
             search=SearchConfig(**lexical_indexer["search"])
-        ),
-        llm=LLMConfig(
+        )
+
+def load_llm_config() -> LLMConfig:
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    llm = raw["llm"]
+
+    return LLMConfig(
             models=llm["models"],
             models_retry_delay_seconds=llm["models_retry_delay_seconds"],
             api_base=llm["api_base"],
@@ -80,23 +84,36 @@ def load_config(config_file: str | Path) -> PipelineConfig:
             timeout=llm["timeout"],
             prompts=PromptConfig(
                 interest_summary=_resolve_path(
-                    project_root,
+                    PROJECT_ROOT,
                     llm["prompts"]["interest_summary"],
                 ),
                 query_generation=_resolve_path(
-                    project_root,
+                    PROJECT_ROOT,
                     llm["prompts"]["query_generation"],
                 ),
                 relevance_evaluation=_resolve_path(
-                    project_root,
+                    PROJECT_ROOT,
                     llm["prompts"]["relevance_evaluation"],
                 )
             ),
-        ),
-        article_processor=ArticleProcessorConfig(
+        )
+
+def load_article_processor_config() -> ArticleProcessorConfig:
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    article_processor = raw["article_processor"]
+
+    return ArticleProcessorConfig(
             selection_margin=article_processor["selection_margin"]
-        ),
-        newsletter=NewsletterConfig(
+        )
+
+def load_newsletter_config() -> NewsletterConfig:
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    newsletter = raw["newsletter"]
+
+    return NewsletterConfig(
             relevance_threshold=newsletter["relevance_threshold"]
         )
-    )

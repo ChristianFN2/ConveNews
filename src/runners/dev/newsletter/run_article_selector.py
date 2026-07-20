@@ -9,16 +9,10 @@ from pathlib import Path
 from src.services.article_processor.article_selector import (
     select_candidate_articles,
 )
-from src.config.config_loader import load_config
+from src.config.config_loader import load_article_processor_config, load_newsletter_config
 from src.services.lexical_indexer.types import (
     QueryResult,
     RetrievedArticle,
-)
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
 )
 
 INPUT_FILE = (
@@ -42,7 +36,8 @@ def main() -> None:
     Candidate selection is performed independently for every target
     language and the selected articles are written to a JSONL file.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    article_processor_config = load_article_processor_config()
+    newsletter_config = load_newsletter_config()
 
     try:
 
@@ -98,8 +93,8 @@ def main() -> None:
                         )
 
                     candidate_limit = (
-                        config.newsletter.max_articles
-                        + config.article_processor.selection_margin
+                        newsletter_config.max_articles
+                        + article_processor_config.selection_margin
                     )
 
                     candidates = select_candidate_articles(

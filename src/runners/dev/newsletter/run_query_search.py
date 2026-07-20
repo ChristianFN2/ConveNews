@@ -6,16 +6,11 @@ import json
 import time
 from pathlib import Path
 
-from src.config.config_loader import load_config
+from src.config.config_loader import load_lexical_indexer_config, load_preprocessor_config
 from src.services.lexical_indexer.searcher import search
 from src.utils.datetime_utils import datetime_to_iso
 from src.services.preprocessor.main_preprocessor import process_query
 
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
 
 INPUT_FILE = (
     Path(__file__).resolve().parent
@@ -39,7 +34,8 @@ def main() -> None:
     Retrieved articles are written to a JSONL file and also printed
     to the console for inspection.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    lexical_indexer_config = load_lexical_indexer_config()
+    preprocessor_config = load_preprocessor_config()
 
     try:
 
@@ -87,8 +83,8 @@ def main() -> None:
                         start = time.perf_counter()
 
                         results = search(
-                            query_text=process_query(query,language,config.preprocessor.text_processing),
-                            index_config=config.lexical_indexer,
+                            query_text=process_query(query,language,preprocessor_config.text_processing),
+                            index_config=lexical_indexer_config,
                         ) 
 
                         elapsed = time.perf_counter() - start

@@ -1,20 +1,12 @@
 """
 Entry point for the preprocessing process.
 
-This script loads the preprocessing configuration from the default
-configuration file and executes the complete preprocessing process.
+This script loads the preprocessing configuratio 
+and executes the complete preprocessing process.
 """
 
-from pathlib import Path
-
-from src.config.config_loader import load_config
+from src.config.config_loader import load_preprocessor_config
 from src.services.preprocessor.main_preprocessor import apply_preprocessing
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[2]
-    / "config"
-    / "pipeline.yaml"
-)
 
 
 def main() -> None:
@@ -22,8 +14,8 @@ def main() -> None:
     Load the preprocessing configuration and execute the preprocessing
     pipeline.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
-    apply_preprocessing(config.preprocessor)
+    config = load_preprocessor_config()
+    apply_preprocessing(config)
 
 
 if __name__ == "__main__":

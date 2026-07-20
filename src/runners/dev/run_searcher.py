@@ -5,23 +5,14 @@ This script loads the application configuration, opens the lexical
 index and allows interactive keyword searches.
 """
 
-from pathlib import Path
-
-from src.config.config_loader import load_config
+from src.config.config_loader import load_lexical_indexer_config
 from src.services.lexical_indexer.searcher import search
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
-
 
 def main() -> None:
     """
     Load the search configuration and perform interactive searches.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    config = load_lexical_indexer_config()
 
     print("Lexical search ready (Ctrl+C to exit).")
 
@@ -34,7 +25,7 @@ def main() -> None:
 
             results = search(
                 query,
-                config.lexical_indexer,
+                config,
             )
 
             if not results:

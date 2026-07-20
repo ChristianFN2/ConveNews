@@ -6,14 +6,8 @@ import json
 import time
 from pathlib import Path
 
-from src.config.config_loader import load_config
+from src.config.config_loader import load_llm_config
 from src.services.llm.relevance_evaluator import evaluate_relevance
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
 
 INPUT_FILE = (
     Path(__file__).resolve().parent
@@ -44,7 +38,7 @@ def main() -> None:
 
     Results are written to a JSONL file and printed to the console.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    config = load_llm_config()
 
     article_lookup = {}
 
@@ -131,7 +125,7 @@ def main() -> None:
                                 "interest_summary"
                             ],
                             target_language=language,
-                            config=config.llm,
+                            config=config,
                         )
 
                         elapsed = (
