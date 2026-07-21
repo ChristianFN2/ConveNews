@@ -44,3 +44,4 @@ article_processor:
 
 newsletter:
   relevance_threshold: 5.0
+  newsletter_profiles: src/runners/dev/data/input/newsletter_profiles.jsonl

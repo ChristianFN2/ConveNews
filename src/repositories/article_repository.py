@@ -1,7 +1,7 @@
-import json
 from pathlib import Path
 
 from src.models.articles import CollectedArticle, ExtractedArticle, ProcessedArticle
+from src.utils import jsonl_file_manager as file_manager
 
 
 class ArticleRepository:
@@ -26,7 +26,7 @@ class ArticleRepository:
         self,
     ) -> list[CollectedArticle]:
 
-        records = self._load_jsonl_file(
+        records = file_manager.load_jsonl_file(
             self.collected_articles_file
         )
 
@@ -55,7 +55,7 @@ class ArticleRepository:
             for article in collected_articles
         ]
 
-        self._save_to_jsonl_file(
+        file_manager.save_to_jsonl_file(
             self.collected_articles_file,
             records,
         )
@@ -64,7 +64,7 @@ class ArticleRepository:
         self,
     ) -> list[ExtractedArticle]:
 
-        records = self._load_jsonl_file(
+        records = file_manager.load_jsonl_file(
             self.extracted_articles_file
         )
 
@@ -95,7 +95,7 @@ class ArticleRepository:
             for article in extracted_articles
         ]
 
-        self._append_to_jsonl_file(
+        file_manager.append_to_jsonl_file(
             self.extracted_articles_file,
             records,
         )
@@ -115,7 +115,7 @@ class ArticleRepository:
             if article.link not in removed_links
         ]
 
-        self._save_jsonl(
+        file_manager.save_to_jsonl_file(
             self.extracted_articles_file,
             remaining_articles,
         )
@@ -124,7 +124,7 @@ class ArticleRepository:
         self,
     ) -> list[ProcessedArticle]:
 
-        records = self._load_jsonl_file(
+        records = file_manager.load_jsonl_file(
             self.processed_articles_file
         )
 
@@ -160,7 +160,7 @@ class ArticleRepository:
             for article in processed_articles
         ]
 
-        self._save_to_jsonl_file(
+        file_manager.save_to_jsonl_file(
             self.processed_articles_file,
             records,
         )
@@ -180,64 +180,7 @@ class ArticleRepository:
             if article.link not in removed_links
         ]
 
-        self._save_jsonl(
+        file_manager.save_to_jsonl_file(
             self.processed_articles_file,
             remaining_articles,
         )
-
-    def _load_jsonl_file(
-        self,
-        file_path: Path,
-    ) -> list[dict]:
-
-        with file_path.open(
-            "r",
-            encoding="utf-8",
-        ) as file:
-
-            return [
-                json.loads(line)
-                for line in file
-            ]
-    
-    def _save_to_jsonl_file(
-        self,
-        file_path: Path,
-        records: list[dict],
-    ) -> None:
-
-        with file_path.open(
-            "w",
-            encoding="utf-8",
-        ) as file:
-
-            for record in records:
-                file.write(
-                    json.dumps(
-                        record,
-                        ensure_ascii=False,
-                    )
-                )
-
-                file.write("\n")
-    
-    def _append_to_jsonl_file(
-        self,
-        file_path: Path,
-        records: list[dict],
-    ) -> None:
-
-        with file_path.open(
-            "a",
-            encoding="utf-8",
-        ) as file:
-
-            for record in records:
-                file.write(
-                    json.dumps(
-                        record,
-                        ensure_ascii=False,
-                    )
-                )
-
-                file.write("\n")

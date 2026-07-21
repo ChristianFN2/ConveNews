@@ -115,5 +115,9 @@ def load_newsletter_config() -> NewsletterConfig:
     newsletter = raw["newsletter"]
 
     return NewsletterConfig(
+            newsletter_profiles=_resolve_path(
+                PROJECT_ROOT,
+                newsletter["newsletter_profiles"],
+            ),
             relevance_threshold=newsletter["relevance_threshold"]
         )
