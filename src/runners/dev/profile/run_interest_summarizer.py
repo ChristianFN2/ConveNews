@@ -34,6 +34,7 @@ def main() -> None:
             profile.interest_summary = response.content
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
+        return
     finally:
         repo.save_newsletter_profiles(newsletter_profiles=newsletter_profiles)
 

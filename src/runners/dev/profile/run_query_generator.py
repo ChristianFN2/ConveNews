@@ -2,117 +2,39 @@
 Development runner for testing the query generator.
 """
 
-import json
-import time
-from pathlib import Path
-
-from src.config.config_loader import load_llm_config
+from src.config.config_loader import load_llm_config, load_newsletter_config
 from src.services.llm.query_generator import generate_queries
-
-
-INPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "interest_summaries.jsonl"
-)
-
-OUTPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "lexical_queries.jsonl"
-)
+from src.repositories.profile_repository import ProfileRepository
 
 
 def main() -> None:
     """
     Generate lexical queries from previously generated interest summaries.
 
-    The generated queries are written to a JSONL file and also printed
-    to the console for inspection.
+    The generated queries are written to a JSONL file
     """
-    config = load_llm_config()
+    llm_config = load_llm_config()
+    newsletter_config = load_newsletter_config()
+
+    repo = ProfileRepository(
+        newsletter_profiles_file=newsletter_config.newsletter_profiles
+    )
+
+    newsletter_profiles = repo.load_newsletter_profiles()
 
     try:
-
-        with (
-            open(INPUT_FILE, "r", encoding="utf-8") as infile,
-            open(OUTPUT_FILE, "w", encoding="utf-8") as outfile,
-        ):
-
-            for i, line in enumerate(infile, start=1):
-
-                try:
-                    record = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-
-                print("=" * 80)
-                print(f"Profile {i}")
-                print()
-
-                print("Interest description:")
-                print(record["interest_description"])
-                print()
-
-                print("Interest summary:")
-                print(record["interest_summary"])
-                print()
-
-                print("Target languages:")
-                print(", ".join(record["target_languages"]))
-                print()
-
-                start = time.perf_counter()
-
-                response = generate_queries(
-                    interest_profile=record["interest_summary"],
-                    source_languages=record["source_languages"],
-                    config=config,
-                )
-
-                elapsed = time.perf_counter() - start
-
-                if response is None:
-                    print("Query generation failed.")
-                    print()
-                    continue
-
-                output_record = {
-                    "user_id": record["user_id"],
-                    "profile_id": record["profile_id"],
-                    "target_language": record["target_language"],
-                    "target_article_num": record["target_article_num"],
-                    "included_sources": record["included_sources"],
-                    "covered_time_period_days": record["covered_time_period_days"],
-                    "reading_time_minutes": record["reading_time_minutes"],
-                    "queries": response.content,
-                    "model": response.model,
-                }
-
-                outfile.write(
-                    json.dumps(output_record, ensure_ascii=False)
-                )
-                outfile.write("\n")
-
-                print("Generated queries:")
-
-                for language, language_queries in response.content.items():
-
-                    print(f"  [{language}]")
-
-                    for query in language_queries:
-                        print(f"    - {query}")
-
-                    print()
-
-                print(f"Model: {response.model}")
-                print(f"Completed in {elapsed:.1f} s")
-                print()
-
+        for profile in newsletter_profiles:
+            response = generate_queries(
+                interest_profile=profile.interest_summary,
+                source_languages=profile.included_sources,
+                config=llm_config
+            )
+            profile.generated_queries.append(response.content)
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
+        return
+    finally:
+        repo.save_newsletter_profiles(newsletter_profiles=newsletter_profiles)
 
 
 if __name__ == "__main__":
