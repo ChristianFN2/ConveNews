@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from src.models.articles import CollectedArticle, ExtractedArticle
+from src.models.articles import CollectedArticle, ExtractedArticle, ProcessedArticle
 
 
 class ArticleRepository:
@@ -10,12 +10,16 @@ class ArticleRepository:
         self,
         collected_articles_file: Path,
         extracted_articles_file: Path,
+        processed_articles_file: Path
     ):
         self.collected_articles_file = (
             collected_articles_file
         )
         self.extracted_articles_file = (
             extracted_articles_file
+        )
+        self.processed_articles_file = (
+            processed_articles_file
         )
 
     def load_collected_articles(
@@ -113,6 +117,71 @@ class ArticleRepository:
 
         self._save_jsonl(
             self.extracted_articles_file,
+            remaining_articles,
+        )
+    
+    def load_processed_articles(
+        self,
+    ) -> list[ProcessedArticle]:
+
+        records = self._load_jsonl_file(
+            self.processed_articles_file
+        )
+
+        return [
+            ProcessedArticle(
+                title=record["title"],
+                source=record["source"],
+                link=record["link"],
+                published=record["published"],
+                processed_content=record["processed_content"],
+                processed_title=record["processed_title"],
+                detected_language=record["detected_language"]
+            )
+            for record in records
+        ]
+    
+    def save_processed_articles(
+        self,
+        processed_articles: list[ProcessedArticle],
+    ) -> None:
+
+        records = [
+            {
+                "title": article.title,
+                "source": article.source,
+                "link": article.link,
+                "published": article.published,
+                "content": article.content,
+                "processed_content": article.processed_content,
+                "processed_title": article.processed_title,
+                "detected_language": article.detected_language
+            }
+            for article in processed_articles
+        ]
+
+        self._save_to_jsonl_file(
+            self.processed_articles_file,
+            records,
+        )
+
+    def remove_processed_articles(
+        self,
+        processed_articles: list[ProcessedArticle]
+    ) -> None:
+        removed_links = {
+            article.link
+            for article in processed_articles
+        }
+
+        remaining_articles = [
+            article
+            for article in self.load_processed_articles()
+            if article.link not in removed_links
+        ]
+
+        self._save_jsonl(
+            self.processed_articles_file,
             remaining_articles,
         )
 

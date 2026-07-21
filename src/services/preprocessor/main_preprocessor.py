@@ -1,10 +1,8 @@
-import json
-from pathlib import Path
-
 from langdetect import LangDetectException, detect
 import spacy
 
-from src.services.preprocessor.types import PreprocessorConfig, TextProcessing
+from src.services.preprocessor.types import TextProcessing
+from src.models.articles import ProcessedArticle, ExtractedArticle
 
 
 # Map language codes to spaCy models
@@ -89,11 +87,11 @@ def _process_text(
 
 
 def _process_article(
-    article: dict,
+    article: ExtractedArticle,
     text_processing: TextProcessing,
-) -> dict | None:
+) -> ProcessedArticle:
     """Preprocess a single article."""
-    content = article.get("content", "")
+    content = article.content
 
     if not content:
         return None
@@ -107,54 +105,26 @@ def _process_article(
     )
 
     processed_title = _process_text(
-        article.get("title", ""),
+        article.title,
         lang_code,
         text_processing,
     )
 
-    return {
-        "title": article.get("title", ""),
-        "processed_title": processed_title,
-        "source": article.get("source", ""),
-        "link": article.get("link", ""),
-        "published": article.get("published", ""),
-        "detected_language": lang_code,
-        "processed_content": processed_content,
-    }
+    return ProcessedArticle(
+        title= article.title,
+        processed_title=processed_title,
+        source=article.source,
+        link=article.link,
+        published=article.published,
+        detected_language=lang_code,
+        processed_content=processed_content
+    )
 
 
-def _load_processed_articles(
-    processed_articles_file: Path,
-) -> dict[str, dict]:
-    """
-    Load previously processed articles indexed by link.
-    """
-    processed_articles: dict[str, dict] = {}
-
-    if not processed_articles_file.exists():
-        return processed_articles
-
-    with open(
-        processed_articles_file,
-        "r",
-        encoding="utf-8",
-    ) as infile:
-
-        for line in infile:
-            try:
-                article = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-            link = article.get("link")
-
-            if link:
-                processed_articles[link] = article
-
-    return processed_articles
-
-
-def apply_preprocessing(config: PreprocessorConfig) -> None:
+def apply_preprocessing(
+        to_process_articles: list[ExtractedArticle],
+        text_processing: TextProcessing
+    ) -> list[ProcessedArticle]:
     """
     Preprocess the extracted articles dataset.
 
@@ -162,50 +132,26 @@ def apply_preprocessing(config: PreprocessorConfig) -> None:
     Only newly extracted articles are processed again.
     Articles no longer present in the extracted dataset are discarded.
     """
-    processed_articles = _load_processed_articles(
-        config.processed_articles_file
-    )
+    processed_articles = []
 
-    with open(
-        config.input_articles_file,
-        "r",
-        encoding="utf-8",
-    ) as infile, open(
-        config.processed_articles_file,
-        "w",
-        encoding="utf-8",
-    ) as outfile:
+    for article in to_process_articles:
+        link = article.link
 
-        for line in infile:
+        if not link:
+            continue
+        
+        processed_article = _process_article(
+            article, 
+            text_processing=text_processing
+        )
 
-            try:
-                article = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+        if processed_article is None:
+            continue
 
-            link = article.get("link")
+        processed_articles.append(processed_article)
 
-            if not link:
-                continue
+    return processed_articles
 
-            processed_article = processed_articles.get(link)
-
-            if processed_article is None:
-                processed_article = _process_article(
-                    article,
-                    config.text_processing,
-                )
-
-            if processed_article is None:
-                continue
-
-            outfile.write(
-                json.dumps(
-                    processed_article,
-                    ensure_ascii=False,
-                )
-            )
-            outfile.write("\n")
 
 def process_query(query: str, lang_code: str, text_processing: TextProcessing) -> str:
     """
