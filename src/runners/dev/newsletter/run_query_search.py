@@ -84,7 +84,8 @@ def main() -> None:
 
                         results = search(
                             query_text=process_query(query,language,preprocessor_config.text_processing),
-                            index_config=lexical_indexer_config,
+                            index_dir=lexical_indexer_config.index_dir,
+                            max_results=lexical_indexer_config.search.max_results
                         ) 
 
                         elapsed = time.perf_counter() - start

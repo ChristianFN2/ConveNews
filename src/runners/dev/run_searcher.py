@@ -25,7 +25,8 @@ def main() -> None:
 
             results = search(
                 query,
-                config,
+                config.index_dir,
+                config.search.max_results
             )
 
             if not results:

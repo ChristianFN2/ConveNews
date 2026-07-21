@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from whoosh import index
 from whoosh.qparser import MultifieldParser
 
@@ -7,7 +9,8 @@ from src.services.lexical_indexer.types import RetrievedArticle
 
 def search(
     query_text: str,
-    index_config: LexicalIndexerConfig,
+    index_dir: Path,
+    max_results: int
 ) -> list[RetrievedArticle]:
     """
     Search the lexical index for the given query.
@@ -19,12 +22,12 @@ def search(
     Returns:
         A list of search results ordered by decreasing relevance score.
     """
-    if not index.exists_in(index_config.index_dir):
+    if not index.exists_in(index_dir):
         raise FileNotFoundError(
-            f"Whoosh index not found: {index_config.index_dir}"
+            f"Whoosh index not found: {index_dir}"
         )
 
-    idx = index.open_dir(index_config.index_dir)
+    idx = index.open_dir(index_dir)
 
     SEARCH_FIELDS = [
         "processed_title",
@@ -39,7 +42,7 @@ def search(
     query = parser.parse(query_text)
 
     with idx.searcher() as searcher:
-        hits = searcher.search(query, limit=index_config.search.max_results)
+        hits = searcher.search(query, limit=max_results)
 
         return [
             RetrievedArticle(
