@@ -22,6 +22,9 @@ def main() -> None:
 
     try:
         for profile in newsletter_profiles:
+            if not profile.is_initialization_pending:
+                continue
+
             response = summarize_interests(
                 interest_description=profile.interest_description,
                 selected_keywords=profile.selected_keywords,
@@ -31,8 +34,8 @@ def main() -> None:
             profile.interest_summary = response.content
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
-
-    repo.save_newsletter_profiles(newsletter_profiles=newsletter_profiles)
+    finally:
+        repo.save_newsletter_profiles(newsletter_profiles=newsletter_profiles)
 
 
 if __name__ == "__main__":
