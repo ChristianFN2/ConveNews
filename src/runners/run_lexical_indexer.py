@@ -6,7 +6,8 @@ and executes the complete indexing process.
 """
 
 from src.config.config_loader import load_lexical_indexer_config
-from src.services.lexical_indexer.main_indexer import generate_index
+from src.services.lexical_indexer import main_indexer
+from src.repositories.article_repository import ArticleRepository
 
 
 def main() -> None:
@@ -15,7 +16,16 @@ def main() -> None:
     pipeline.
     """
     config = load_lexical_indexer_config()
-    generate_index(config)
+    repo = ArticleRepository(
+        processed_articles_file=config.input_articles_file
+    )
+
+    processed_articles = repo.load_processed_articles()
+
+    main_indexer.update_index(
+        processed_articles,
+        config.index_dir
+    )
 
 
 if __name__ == "__main__":

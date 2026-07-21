@@ -1,10 +1,10 @@
-import json
+from pathlib import Path
 
 from whoosh import index
 from whoosh.analysis import RegexTokenizer
 from whoosh.fields import DATETIME, ID, TEXT, Schema
 
-from src.services.lexical_indexer.types import LexicalIndexerConfig
+from src.models.articles import ProcessedArticle
 from src.utils.datetime_utils import parse_datetime
 
 
@@ -21,51 +21,106 @@ SCHEMA = Schema(
 )
 
 
-def generate_index(config: LexicalIndexerConfig) -> None:
+def generate_index(
+        processed_articles: list[ProcessedArticle],
+        index_dir: Path,
+    ) -> None:
     """
-    Build or update the Whoosh lexical index from preprocessed articles.
-
-    The input file must contain one JSON object per line with, at minimum,
-    the following fields:
-
-        - processed_title
-        - source
-        - published
-        - link
-        - processed_content
-        - detected_language
-
-    The processed content is indexed but not stored in the index, while the
-    article metadata required to identify each document is stored.
+    Build the Whoosh lexical index from preprocessed articles.
     """
-    config.index_dir.mkdir(parents=True, exist_ok=True)
+    """
+    Create a new lexical index from the given processed articles.
+    """
+    index_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-    if not index.exists_in(config.index_dir):
-        idx = index.create_in(config.index_dir, SCHEMA)
-    else:
-        idx = index.open_dir(config.index_dir)
+    ix = index.create_in(
+        index_dir,
+        SCHEMA,
+    )
 
-    writer = idx.writer()
+    writer = ix.writer()
 
-    with open(config.input_articles_file, "r", encoding="utf-8") as infile:
-        for line in infile:
-            try:
-                article = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-            link = article.get("link", "")
-            if not link:
-                continue
-
-            writer.update_document(
-                link=link,
-                title=article.get("title", ""),
-                processed_title=article.get("processed_title", ""),
-                source=article.get("source", ""),
-                published=parse_datetime(article.get("published", "")),
-                detected_language=article.get("detected_language", ""),
-                processed_content=article.get("processed_content", ""),
-            )
+    for article in processed_articles:
+        writer.add_document(
+            link=article.link,
+            title=article.title,
+            processed_title=article.processed_title,
+            source=article.source,
+            published=parse_datetime(article.published),
+            detected_language=article.detected_language,
+            processed_content=article.processed_content,
+        )
 
     writer.commit()
+
+def update_index(
+    processed_articles: list[ProcessedArticle],
+    index_dir: Path,
+) -> None:
+    """
+    Synchronize the lexical index with the processed articles.
+    """
+    if not index.exists_in(index_dir):
+        generate_index(
+            processed_articles,
+            index_dir,
+        )
+        return
+
+    ix = index.open_dir(index_dir)
+
+    indexed_links = _load_links(index_dir)
+
+    processed_links = {
+        article.link
+        for article in processed_articles
+    }
+
+    articles_to_add = [
+        article
+        for article in processed_articles
+        if article.link not in indexed_links
+    ]
+
+    links_to_remove = (
+        indexed_links
+        - processed_links
+    )
+
+    writer = ix.writer()
+
+    for article in articles_to_add:
+        writer.add_document(
+            link=article.link,
+            title=article.title,
+            processed_title=article.processed_title,
+            source=article.source,
+            published=parse_datetime(article.published),
+            detected_language=article.detected_language,
+            processed_content=article.processed_content,
+        )
+
+    for link in links_to_remove:
+        writer.delete_by_term(
+            "link",
+            link,
+        )
+
+    writer.commit()
+
+
+def _load_links(
+    ix: index.Index,
+) -> set[str]:
+    """
+    Return the links currently stored in the lexical index.
+    """
+    
+    with ix.searcher() as searcher:
+        return {
+            fields["link"]
+            for fields in searcher.all_stored_fields()
+        }
