@@ -9,6 +9,7 @@ from src.services.preprocessor.types import TextProcessing
 from src.services.lexical_indexer.types import LexicalIndexerConfig, SearchConfig
 from src.services.article_processor.types import ArticleProcessorConfig
 from src.services.newsletter.types import NewsletterConfig
+from src.config.types.sources import SourceConfig
 
 DEFAULT_CONFIG_FILE = (
     Path(__file__).resolve().parents[2]
@@ -120,4 +121,17 @@ def load_newsletter_config() -> NewsletterConfig:
                 newsletter["newsletter_profiles"],
             ),
             relevance_threshold=newsletter["relevance_threshold"]
+        )
+
+def load_source_config() -> SourceConfig:
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    sources = raw["sources"]
+
+    return SourceConfig(
+            sources_file=_resolve_path(
+                PROJECT_ROOT,
+                sources["sources_file"],
+            ),
         )

@@ -4,14 +4,15 @@ Utilities for generating lexical search queries using the configured LLM.
 
 import json
 
-from src.services.llm.client import generate
-from src.services.llm.types import LLMConfig, LLMResponse
+from src.services.llm.client import LLMClient
+from src.services.llm.types import LLMResponse
 
 
 def _generate_queries_for_language(
     interest_profile: str,
     target_language: str,
-    config: LLMConfig,
+    client: LLMClient,
+    prompt: str
 ) -> LLMResponse[list[str]] | None:
     """
     Generate lexical search queries for a single target language.
@@ -23,23 +24,17 @@ def _generate_queries_for_language(
         target_language:
             Language in which the lexical queries should be generated.
 
-        config:
-            LLM configuration.
-
     Returns:
         The generated queries together with the model used, or None if
         generation failed.
     """
-    prompt_template = config.prompts.query_generation.read_text(
-        encoding="utf-8"
-    )
 
-    prompt = prompt_template.format(
+    prompt = prompt.format(
         INTEREST_PROFILE=interest_profile,
         TARGET_LANGUAGE=target_language,
     )
 
-    response = generate(prompt, config)
+    response = client.generate(prompt)
 
     text = response.content.strip()
 
@@ -83,8 +78,9 @@ def _generate_queries_for_language(
 def generate_queries(
     interest_profile: str,
     source_languages: list[str],
-    config: LLMConfig,
-) -> LLMResponse[dict[str, list[str]]] | None:
+    client: LLMClient,
+    prompt: str
+) -> LLMResponse[list[str]] | None:
     """
     Generate lexical search queries for one or more target languages.
 
@@ -95,36 +91,35 @@ def generate_queries(
         target_languages:
             Languages in which lexical queries should be generated.
 
-        config:
-            LLM configuration.
-
     Returns:
         A mapping from language to generated queries together with the
         model used. Returns None if generation failed for every language.
     """
-    queries_by_language: dict[str, list[str]] = {}
     models_used: list[str] = []
+
+    generated_queries = []
 
     for language in source_languages:
 
         response = _generate_queries_for_language(
             interest_profile=interest_profile,
             target_language=language,
-            config=config,
+            client=client,
+            prompt=prompt
         )
 
         if response is None:
             continue
 
-        queries_by_language[language] = response.content
+        generated_queries.extend(response.content)
 
         if response.model not in models_used:
             models_used.append(response.model)
 
-    if not queries_by_language:
+    if not generated_queries:
         return None
 
     return LLMResponse(
-        content=queries_by_language,
+        content=generated_queries,
         model=", ".join(models_used),
     )

@@ -2,14 +2,15 @@
 Utilities for summarizing user interests using the configured LLM.
 """
 
-from src.services.llm.client import generate
-from src.services.llm.types import LLMConfig, LLMResponse
+from src.services.llm.client import LLMClient
+from src.services.llm.types import LLMResponse
 
 
 def summarize_interests(
     interest_description: str,
     selected_keywords: list[str],
-    config: LLMConfig,
+    client: LLMClient,
+    prompt: str
 ) -> LLMResponse[str] | None:
     """
     Generate a concise summary of the user's interests.
@@ -21,19 +22,13 @@ def summarize_interests(
         selected_keywords:
             List of keywords related to the user's interests.
 
-        config:
-            LLM configuration.
-
     Returns:
         The generated summary, or None if no configured model is available.
     """
-    prompt_template = config.prompts.interest_summary.read_text(
-        encoding="utf-8"
-    )
 
-    prompt = prompt_template.format(
+    prompt = prompt.format(
         INTEREST_DESCRIPTION=interest_description,
         SELECTED_KEYWORDS=", ".join(selected_keywords),
     )
 
-    return generate(prompt, config)
+    return client.generate(prompt)

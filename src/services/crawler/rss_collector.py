@@ -6,7 +6,6 @@ in the summaries, and saves the parsed articles to a JSONL file.
 
 import feedparser
 from datetime import timedelta
-from pathlib import Path
 from src.models.articles import CollectedArticle
 
 from src.utils.datetime_utils import (
@@ -14,20 +13,6 @@ from src.utils.datetime_utils import (
     datetime_to_iso,
     utc_now
 )
-
-
-# -------------------------
-# IO helpers
-# -------------------------
-
-def _load_feed_urls(file_path: str | Path) -> list[str]:
-    urls: list[str] = []
-    with open(file_path, "r", encoding="utf-8") as f:
-        for line in f:
-            url = line.strip()
-            if url:
-                urls.append(url)
-    return urls
 
 # -------------------------
 # RSS parsing
@@ -62,7 +47,7 @@ def _parse_feed(feed_url: str, max_articles_per_feed: int) -> list[CollectedArti
 
 def collect_from_rss_feeds(
     existing_articles: list[CollectedArticle],
-    feed_urls_file: str | Path,
+    feed_urls: list[str],
     max_articles_per_feed: int,
     collection_window_days: int,
 ) -> list[CollectedArticle]:
@@ -75,8 +60,8 @@ def collect_from_rss_feeds(
     articles are identified by their URL and ignored.
 
     Args:
-        feed_urls_file:
-            Path to the file containing the RSS feed URLs.
+        feed_urls:
+            List of urls used for the collection
 
         max_articles_per_feed:
             Maximum number of articles to retrieve from each RSS feed.
@@ -85,8 +70,6 @@ def collect_from_rss_feeds(
             Number of days to retain articles in the collection. Articles older
             than this window will be discarded.
     """
-
-    feed_urls = _load_feed_urls(feed_urls_file)
 
     # Compute cutoff
     cutoff = utc_now() - timedelta(days=collection_window_days)
