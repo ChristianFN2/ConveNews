@@ -6,6 +6,9 @@ from pathlib import Path
 class NewsletterConfig:
     newsletter_profiles: Path
     relevance_threshold: float
+    retrieved_articles_file: Path
+    evaluated_articles_file: Path
+    newsletters_file: Path
 
 @dataclass
 class Newsletter:

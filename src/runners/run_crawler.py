@@ -16,25 +16,20 @@ def main() -> None:
     crawler_config = load_crawler_config()
     source_config = load_source_config()
 
-    article_repo = ArticleRepository(
-        collected_articles_file=(
-            crawler_config.collected_articles_file
-        ),
-        extracted_articles_file=(
-            crawler_config.extracted_articles_file
-        ),
-    )
-    source_repo = SourceRepository(
-        sources_file=source_config.sources_file
-    )
+    article_repo = ArticleRepository()
+    source_repo = SourceRepository()
 
     prev_collected_articles = (
-        article_repo.load_collected_articles()
+        article_repo.load_collected_articles(
+            collected_articles_file=crawler_config.collected_articles_file
+        )
     )
 
     feed_urls = [
         source.link
-        for source in source_repo.load_sources()
+        for source in source_repo.load_sources(
+            sources_file= source_config.sources_file
+        )
     ]
 
     new_collected_articles = (
@@ -47,17 +42,21 @@ def main() -> None:
     )
 
     article_repo.save_collected_articles(
-        new_collected_articles
+        collected_articles=new_collected_articles,
+        collected_articles_file=(crawler_config.collected_articles_file),
     )
 
-    prev_extracted_articles = article_repo.load_extracted_articles()
+    prev_extracted_articles = article_repo.load_extracted_articles(
+        extracted_articles_file= crawler_config.extracted_articles_file
+    )
 
     expired_articles = extracted_articles_cleaner.get_expired_articles(
         prev_extracted_articles,
         crawler_config.extraction_retention_days)
     
     article_repo.remove_extracted_articles(
-        expired_articles
+        extracted_articles=expired_articles,
+        extracted_articles_file= crawler_config.extracted_articles_file
     )
 
     expired_links = {
@@ -89,7 +88,8 @@ def main() -> None:
     )
 
     article_repo.append_extracted_articles(
-        new_extracted_articles
+        extracted_articles= new_extracted_articles,
+        extracted_articles_file= crawler_config.extracted_articles_file
     )
 
 

@@ -15,19 +15,16 @@ def main() -> None:
     Load the preprocessing configuration and execute the preprocessing
     pipeline.
     """
-    config = load_preprocessor_config()
+    preprocessor_config = load_preprocessor_config()
 
-    repo = ArticleRepository(
-        extracted_articles_file=(
-            config.input_articles_file
-        ),
-        processed_articles_file=(
-            config.processed_articles_file
-        )
+    article_repo = ArticleRepository()
+
+    all_extracted_articles = article_repo.load_extracted_articles(
+        extracted_articles_file= preprocessor_config.input_articles_file
     )
-
-    all_extracted_articles = repo.load_extracted_articles()
-    prev_processed_articles = repo.load_processed_articles()
+    prev_processed_articles = article_repo.load_processed_articles(
+        processed_articles_file= preprocessor_config.processed_articles_file
+    )
 
     processed_links = {
         article.link
@@ -43,11 +40,14 @@ def main() -> None:
     final_preprocessed_articles = prev_processed_articles.extend(
         apply_preprocessing(
             to_process_articles,
-            config.text_processing
+            preprocessor_config.text_processing
         )
     )
 
-    repo.save_processed_articles(final_preprocessed_articles)
+    article_repo.save_processed_articles(
+        processed_articles= final_preprocessed_articles,
+        processed_articles_file= preprocessor_config.processed_articles_file
+    )
 
 
 if __name__ == "__main__":

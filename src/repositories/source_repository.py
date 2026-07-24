@@ -6,20 +6,13 @@ from src.utils import jsonl_file_manager as file_manager
 
 class SourceRepository:
 
-    def __init__(
-        self,
-        sources_file: Path,
-    ):
-        self.sources_file = (
-            sources_file
-        )
-
     def load_sources(
         self,
+        sources_file: Path
     ) -> list[Source]:
 
         records = file_manager.load_jsonl_file(
-            self.sources_file
+            sources_file
         )
 
         return [
@@ -33,7 +26,8 @@ class SourceRepository:
     
     def load_sources_by_links(
         self,
-        links: list[str]
+        links: list[str],
+        sources_file: Path
     ) -> list[Source]:
         """
         Load the sources whose links are included in the given list.
@@ -42,7 +36,7 @@ class SourceRepository:
 
         return [
             source
-            for source in self.load_sources()
+            for source in self.load_sources(sources_file)
             if source.link in link_set
         ]
     

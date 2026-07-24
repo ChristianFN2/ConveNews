@@ -14,7 +14,7 @@ SCHEMA = Schema(
     link=ID(stored=True, unique=True),
     title=TEXT(stored=True),
     processed_title=TEXT(stored=False, analyzer=INDEX_ANALYZER),
-    source=TEXT(stored=True),
+    source=ID(stored=True),
     published=DATETIME(stored=True),
     detected_language=ID(stored=True),
     processed_content=TEXT(analyzer=INDEX_ANALYZER, stored=False),

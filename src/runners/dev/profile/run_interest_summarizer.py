@@ -15,11 +15,11 @@ def main() -> None:
     llm_config = load_llm_config()
     newsletter_config = load_newsletter_config()
 
-    repo = ProfileRepository(
-        newsletter_profiles_file=newsletter_config.newsletter_profiles
-    )
+    profile_repo = ProfileRepository()
 
-    newsletter_profiles = repo.load_newsletter_profiles()
+    newsletter_profiles = profile_repo.load_newsletter_profiles(
+        newsletter_profiles_file= newsletter_config.newsletter_profiles
+    )
 
     client = create_llm_client(llm_config)
     prompt = llm_config.prompts.interest_summary.read_text(
@@ -43,7 +43,10 @@ def main() -> None:
         print("\nExecution interrupted by user.")
         return
     finally:
-        repo.save_newsletter_profiles(newsletter_profiles=newsletter_profiles)
+        profile_repo.save_newsletter_profiles(
+            newsletter_profiles=newsletter_profiles,
+            newsletter_profiles_file= newsletter_config.newsletter_profiles
+        )
 
 
 if __name__ == "__main__":

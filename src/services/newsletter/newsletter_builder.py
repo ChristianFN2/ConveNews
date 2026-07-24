@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 
 from src.services.newsletter.templates.localization import LOCALIZATION
-from src.services.newsletter.types import Newsletter, NewsletterContent, NewsletterConfig, NewsletterArticle
+from config.types.newsletter import Newsletter, NewsletterContent, NewsletterConfig, NewsletterArticle
 from src.services.newsletter.sources import NEWS_SOURCES
 
 

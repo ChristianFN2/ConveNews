@@ -17,3 +17,9 @@ class ProcessedArticle(CollectedArticle):
     processed_title: str
     processed_content: str
     detected_language: str
+
+@dataclass
+class RetrievedArticle(CollectedArticle):
+    profile_id: int
+    lexical_score: float
+    detected_language: str

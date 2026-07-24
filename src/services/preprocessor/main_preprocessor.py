@@ -1,7 +1,7 @@
 from langdetect import LangDetectException, detect
 import spacy
 
-from src.services.preprocessor.types import TextProcessing
+from config.types.preprocessor import TextProcessing
 from src.models.articles import ProcessedArticle, ExtractedArticle
 
 

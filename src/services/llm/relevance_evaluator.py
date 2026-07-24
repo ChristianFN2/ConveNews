@@ -6,7 +6,7 @@ using the configured LLM.
 import json
 
 from src.services.llm.client import generate
-from src.services.llm.types import (
+from config.types.llm import (
     ArticleEvaluation,
     LLMConfig,
     LLMResponse,

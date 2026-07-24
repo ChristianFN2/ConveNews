@@ -15,16 +15,16 @@ def main() -> None:
     Load the indexing configuration and execute the indexing
     pipeline.
     """
-    config = load_lexical_indexer_config()
-    repo = ArticleRepository(
-        processed_articles_file=config.input_articles_file
-    )
+    lex_indexer_config = load_lexical_indexer_config()
+    article_repo = ArticleRepository()
 
-    processed_articles = repo.load_processed_articles()
+    processed_articles = article_repo.load_processed_articles(
+        processed_articles_file= lex_indexer_config.input_articles_file
+    )
 
     main_indexer.update_index(
         processed_articles,
-        config.index_dir
+        lex_indexer_config.index_dir
     )
 
 

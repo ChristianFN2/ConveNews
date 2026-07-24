@@ -1,25 +1,19 @@
 from pathlib import Path
 
+from models.queries import SearchQuery
 from src.models.profiles import NewsletterProfile
 from src.utils import jsonl_file_manager as file_manager
 
 
 class ProfileRepository:
 
-    def __init__(
-        self,
-        newsletter_profiles_file: Path,
-    ):
-        self.newsletter_profiles_file = (
-            newsletter_profiles_file
-        )
-
     def load_newsletter_profiles(
         self,
+        newsletter_profiles_file: Path
     ) -> list[NewsletterProfile]:
 
         records = file_manager.load_jsonl_file(
-            self.newsletter_profiles_file
+            newsletter_profiles_file
         )
 
         return [
@@ -36,7 +30,13 @@ class ProfileRepository:
                 reading_time_minutes= record["reading_time_minutes"],
                 is_initialization_pending= record["is_initialization_pending"],
                 interest_summary= record["interest_summary"],
-                generated_queries= record["generated_queries"]
+                generated_queries= [
+                    SearchQuery(
+                        text= query["text"],
+                        query_language= query["query_language"]
+                    )
+                    for query in record["generated_queries"]
+                ]
             )
             for record in records
         ]
@@ -44,6 +44,7 @@ class ProfileRepository:
     def save_newsletter_profiles(
         self,
         newsletter_profiles: list[NewsletterProfile],
+        newsletter_profiles_file: Path
     ) -> None:
 
         records = [
@@ -60,12 +61,18 @@ class ProfileRepository:
                 "reading_time_minutes": article.reading_time_minutes,
                 "is_initialization_pending": article.is_initialization_pending,
                 "interest_summary": article.interest_summary,
-                "generated_queries": article.generated_queries
+                "generated_queries": [
+                    {
+                        "text": query.text,
+                        "query_language": query.query_language,
+                    }
+                    for query in article.generated_queries
+                ]
             }
             for article in newsletter_profiles
         ]
 
         file_manager.save_to_jsonl_file(
-            self.newsletter_profiles_file,
+            newsletter_profiles_file,
             records,
         )

@@ -1,26 +1,32 @@
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from whoosh import index
 from whoosh.qparser import MultifieldParser
+from whoosh.query import And, DateRange, Or, Term
 
-from src.services.lexical_indexer.types import LexicalIndexerConfig
-from src.services.lexical_indexer.types import RetrievedArticle
+from src.models.articles import RetrievedArticle
 
 
 def search(
     query_text: str,
     index_dir: Path,
-    max_results: int
+    max_results: int,
+    included_sources: list[str],
+    covered_period_days: int,
 ) -> list[RetrievedArticle]:
     """
     Search the lexical index for the given query.
 
     Args:
         query_text: Query expressed as keywords.
-        index_config: Lexical index configuration, includes search settings.
+        index_dir: Directory containing the Whoosh index.
+        max_results: Maximum number of results to return.
+        included_sources: Source links that should be considered.
+        covered_period_days: Maximum age of returned articles.
 
     Returns:
-        A list of search results ordered by decreasing relevance score.
+        A list of search results ordered by decreasing lexical relevance.
     """
     if not index.exists_in(index_dir):
         raise FileNotFoundError(
@@ -29,28 +35,50 @@ def search(
 
     idx = index.open_dir(index_dir)
 
-    SEARCH_FIELDS = [
+    search_fields = [
         "processed_title",
         "processed_content",
     ]
 
     parser = MultifieldParser(
-        SEARCH_FIELDS,
+        search_fields,
         schema=idx.schema,
     )
 
-    query = parser.parse(query_text)
+    lexical_query = parser.parse(query_text)
+
+    earliest_date = (
+        datetime.now() -
+        timedelta(days=covered_period_days)
+    )
+
+    search_filter = And([
+        DateRange(
+            "published",
+            earliest_date,
+            None,
+        ),
+        Or([
+            Term("source", source)
+            for source in included_sources
+        ]),
+    ])
 
     with idx.searcher() as searcher:
-        hits = searcher.search(query, limit=max_results)
+        hits = searcher.search(
+            lexical_query,
+            filter=search_filter,
+            limit=max_results,
+        )
 
         return [
             RetrievedArticle(
                 title=hit["title"],
                 source=hit["source"],
-                published=hit["published"],
                 link=hit["link"],
-                score=hit.score,
+                published=hit["published"],
+                detected_language=hit["detected_language"],
+                lexical_score=hit.score,
             )
             for hit in hits
         ]

@@ -41,10 +41,14 @@ llm:
 
 article_processor:
   selection_margin: 3
+  selected_articles_file: src/runners/dev/data/output/temp_selected_articles.jsonl
 
 newsletter:
   relevance_threshold: 5.0
   newsletter_profiles: src/runners/dev/data/newsletter_profiles.jsonl
+  retrieved_articles_file: src/runners/dev/data/output/temp_retrieved_articles.jsonl
+  evaluated_articles_file: src/runners/dev/data/output/temp_evaluated_articles.jsonl
+  newsletters_file: src/runners/dev/data/output/newsletters.jsonl
 
 sources:
   sources_file: data/input/sources.jsonl

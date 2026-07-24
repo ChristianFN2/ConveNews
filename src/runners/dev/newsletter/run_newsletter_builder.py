@@ -11,7 +11,7 @@ from src.config.config_loader import load_newsletter_config
 from src.services.newsletter.newsletter_builder import (
     build_newsletter,
 )
-from src.services.newsletter.types import (
+from config.types.newsletter import (
     NewsletterContent, NewsletterArticle
 )
 

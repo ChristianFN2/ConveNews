@@ -1,7 +1,7 @@
 import os
 
 from services.llm.client import LLMClient
-from services.llm.types import LLMConfig
+from config.types.llm import LLMConfig
 
 
 API_KEY_ENVIRONMENT_VARIABLE = "CONVENEWS_API_KEY"
