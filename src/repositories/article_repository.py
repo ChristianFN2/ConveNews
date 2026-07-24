@@ -1,224 +1,117 @@
 from pathlib import Path
+from typing import TypeVar
 
-from src.models.articles import CollectedArticle, ExtractedArticle, ProcessedArticle, RetrievedArticle
+from src.models.articles import Article
 from src.utils import jsonl_file_manager as file_manager
 
 
+ArticleType = TypeVar("ArticleType", bound=Article)
+
+
 class ArticleRepository:
+    """
+    Repository responsible for persisting article entities.
 
-    def load_collected_articles(
+    All article types must inherit from Article and be serializable
+    to and from JSON-compatible dictionaries.
+    """
+
+    def load_articles(
         self,
-        collected_articles_file: Path
-    ) -> list[CollectedArticle]:
+        articles_file: Path,
+        article_type: type[ArticleType],
+    ) -> list[ArticleType]:
+        """
+        Load articles from a JSONL file.
 
+        Args:
+            articles_file: JSONL file containing the articles.
+            article_type: Concrete article type to instantiate.
+
+        Returns:
+            A list of loaded articles.
+        """
         records = file_manager.load_jsonl_file(
-            collected_articles_file
+            articles_file
         )
 
         return [
-            CollectedArticle(
-                title=record["title"],
-                source=record["source"],
-                link=record["link"],
-                published=record["published"],
-            )
+            article_type(**record)
             for record in records
         ]
 
-    def save_collected_articles(
+    def save_articles(
         self,
-        collected_articles: list[CollectedArticle],
-        collected_articles_file: Path
+        articles_file: Path,
+        articles: list[ArticleType],
     ) -> None:
+        """
+        Overwrite a JSONL file with the provided articles.
 
+        Args:
+            articles_file: Destination file.
+            articles: Articles to persist.
+        """
         records = [
-            {
-                "title": article.title,
-                "source": article.source,
-                "link": article.link,
-                "published": article.published,
-            }
-            for article in collected_articles
+            vars(article)
+            for article in articles
         ]
 
-        file_manager.save_to_jsonl_file(
-            collected_articles_file,
+        file_manager.save_jsonl_file(
+            articles_file,
             records,
         )
 
-    def load_extracted_articles(
+    def append_articles(
         self,
-        extracted_articles_file: Path
-    ) -> list[ExtractedArticle]:
-
-        records = file_manager.load_jsonl_file(
-            extracted_articles_file
-        )
-
-        return [
-            ExtractedArticle(
-                title=record["title"],
-                source=record["source"],
-                link=record["link"],
-                published=record["published"],
-                content=record["content"]
-            )
-            for record in records
-        ]
-    
-    def append_extracted_articles(
-        self,
-        extracted_articles: list[ExtractedArticle],
-        extracted_articles_file: Path
+        articles_file: Path,
+        articles: list[ArticleType],
     ) -> None:
+        """
+        Append articles to an existing JSONL file.
 
+        Args:
+            articles_file: Destination file.
+            articles: Articles to append.
+        """
         records = [
-            {
-                "title": article.title,
-                "source": article.source,
-                "link": article.link,
-                "published": article.published,
-                "content": article.content,
-            }
-            for article in extracted_articles
+            vars(article)
+            for article in articles
         ]
 
-        file_manager.append_to_jsonl_file(
-            extracted_articles_file,
+        file_manager.append_jsonl_file(
+            articles_file,
             records,
         )
 
-    def remove_extracted_articles(
+    def remove_articles(
         self,
-        extracted_articles: list[ExtractedArticle],
-        extracted_articles_file: Path
+        articles_file: Path,
+        articles_to_remove: list[ArticleType],
     ) -> None:
-        removed_links = {
+        """
+        Remove articles matching the links of the provided articles.
+
+        Args:
+            articles_file: Source file.
+            articles_to_remove: Articles whose links should be removed.
+        """
+        existing_records = file_manager.load_jsonl_file(
+            articles_file
+        )
+
+        links_to_remove = {
             article.link
-            for article in extracted_articles
+            for article in articles_to_remove
         }
 
-        remaining_articles = [
-            article
-            for article in self.load_extracted_articles()
-            if article.link not in removed_links
+        filtered_records = [
+            record
+            for record in existing_records
+            if record["link"] not in links_to_remove
         ]
 
-        file_manager.save_to_jsonl_file(
-            extracted_articles_file,
-            remaining_articles,
-        )
-    
-    def load_processed_articles(
-        self,
-        processed_articles_file: Path
-    ) -> list[ProcessedArticle]:
-
-        records = file_manager.load_jsonl_file(
-            processed_articles_file
-        )
-
-        return [
-            ProcessedArticle(
-                title=record["title"],
-                source=record["source"],
-                link=record["link"],
-                published=record["published"],
-                processed_content=record["processed_content"],
-                processed_title=record["processed_title"],
-                detected_language=record["detected_language"]
-            )
-            for record in records
-        ]
-    
-    def save_processed_articles(
-        self,
-        processed_articles: list[ProcessedArticle],
-        processed_articles_file: Path
-    ) -> None:
-
-        records = [
-            {
-                "title": article.title,
-                "source": article.source,
-                "link": article.link,
-                "published": article.published,
-                "content": article.content,
-                "processed_content": article.processed_content,
-                "processed_title": article.processed_title,
-                "detected_language": article.detected_language
-            }
-            for article in processed_articles
-        ]
-
-        file_manager.save_to_jsonl_file(
-            processed_articles_file,
-            records,
-        )
-
-    def remove_processed_articles(
-        self,
-        processed_articles: list[ProcessedArticle],
-        processed_articles_file: Path
-    ) -> None:
-        removed_links = {
-            article.link
-            for article in processed_articles
-        }
-
-        remaining_articles = [
-            article
-            for article in self.load_processed_articles()
-            if article.link not in removed_links
-        ]
-
-        file_manager.save_to_jsonl_file(
-            processed_articles_file,
-            remaining_articles,
-        )
-
-    def load_retrieved_articles(
-        self,
-        retrieved_articles_file: Path
-    ) -> list[RetrievedArticle]:
-
-        records = file_manager.load_jsonl_file(
-            retrieved_articles_file
-        )
-
-        return [
-            RetrievedArticle(
-                title=record["title"],
-                source=record["source"],
-                link=record["link"],
-                published=record["published"],
-                profile_id=record["profile_id"],
-                lexical_score=record["lexical_score"],
-                detected_language=record["detected_language"]
-            )
-            for record in records
-        ]
-    
-    def save_retrieved_articles(
-        self,
-        retrieved_articles: list[RetrievedArticle],
-        retrieved_articles_file: Path
-    ) -> None:
-
-        records = [
-            {
-                "title": article.title,
-                "source": article.source,
-                "link": article.link,
-                "published": article.published,
-                "profile_id": article.profile_id,
-                "lexical_score": article.lexical_score,
-                "detected_language": article.detected_language
-            }
-            for article in retrieved_articles
-        ]
-
-        file_manager.save_to_jsonl_file(
-            retrieved_articles_file,
-            records,
+        file_manager.save_jsonl_file(
+            articles_file,
+            filtered_records,
         )

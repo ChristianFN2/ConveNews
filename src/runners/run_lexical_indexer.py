@@ -5,6 +5,7 @@ This script loads the indexing configuration
 and executes the complete indexing process.
 """
 
+from models.articles import ProcessedArticle
 from src.config.config_loader import load_lexical_indexer_config
 from src.services.lexical_indexer import main_indexer
 from src.repositories.article_repository import ArticleRepository
@@ -18,8 +19,9 @@ def main() -> None:
     lex_indexer_config = load_lexical_indexer_config()
     article_repo = ArticleRepository()
 
-    processed_articles = article_repo.load_processed_articles(
-        processed_articles_file= lex_indexer_config.input_articles_file
+    processed_articles = article_repo.load_articles(
+        articles_file= lex_indexer_config.input_articles_file,
+        article_type= ProcessedArticle
     )
 
     main_indexer.update_index(

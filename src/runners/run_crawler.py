@@ -5,6 +5,7 @@ This script loads the crawler configuration
 file and executes the complete crawling pipeline.
 """
 
+from models.articles import Article, ExtractedArticle
 from src.config.config_loader import load_crawler_config
 from src.config.config_loader import load_source_config
 from src.services.crawler import rss_collector, content_extractor, extracted_articles_cleaner
@@ -19,10 +20,9 @@ def main() -> None:
     article_repo = ArticleRepository()
     source_repo = SourceRepository()
 
-    prev_collected_articles = (
-        article_repo.load_collected_articles(
-            collected_articles_file=crawler_config.collected_articles_file
-        )
+    prev_collected_articles = article_repo.load_articles(
+        articles_file=crawler_config.collected_articles_file,
+        article_type=Article
     )
 
     feed_urls = [
@@ -41,22 +41,23 @@ def main() -> None:
         )
     )
 
-    article_repo.save_collected_articles(
-        collected_articles=new_collected_articles,
-        collected_articles_file=(crawler_config.collected_articles_file),
+    article_repo.save_articles(
+        articles= new_collected_articles,
+        articles_file= crawler_config.collected_articles_file
     )
 
-    prev_extracted_articles = article_repo.load_extracted_articles(
-        extracted_articles_file= crawler_config.extracted_articles_file
+    prev_extracted_articles = article_repo.load_articles(
+        article_type= ExtractedArticle,
+        articles_file= crawler_config.extracted_articles_file
     )
 
     expired_articles = extracted_articles_cleaner.get_expired_articles(
         prev_extracted_articles,
         crawler_config.extraction_retention_days)
     
-    article_repo.remove_extracted_articles(
-        extracted_articles=expired_articles,
-        extracted_articles_file= crawler_config.extracted_articles_file
+    article_repo.remove_articles(
+        articles_to_remove= expired_articles,
+        articles_file= crawler_config.extracted_articles_file
     )
 
     expired_links = {
@@ -87,9 +88,9 @@ def main() -> None:
         )
     )
 
-    article_repo.append_extracted_articles(
-        extracted_articles= new_extracted_articles,
-        extracted_articles_file= crawler_config.extracted_articles_file
+    article_repo.append_articles(
+        articles= new_extracted_articles,
+        articles_file= crawler_config.extracted_articles_file
     )
 
 

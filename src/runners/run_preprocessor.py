@@ -5,6 +5,7 @@ This script loads the preprocessing configuratio
 and executes the complete preprocessing process.
 """
 
+from models.articles import ExtractedArticle, ProcessedArticle
 from src.config.config_loader import load_preprocessor_config
 from src.services.preprocessor.main_preprocessor import apply_preprocessing
 from src.repositories.article_repository import ArticleRepository
@@ -19,11 +20,13 @@ def main() -> None:
 
     article_repo = ArticleRepository()
 
-    all_extracted_articles = article_repo.load_extracted_articles(
-        extracted_articles_file= preprocessor_config.input_articles_file
+    all_extracted_articles = article_repo.load_articles(
+        articles_file= preprocessor_config.input_articles_file,
+        article_type= ExtractedArticle
     )
-    prev_processed_articles = article_repo.load_processed_articles(
-        processed_articles_file= preprocessor_config.processed_articles_file
+    prev_processed_articles = article_repo.load_articles(
+        articles_file= preprocessor_config.processed_articles_file,
+        article_type= ProcessedArticle
     )
 
     processed_links = {
@@ -37,16 +40,18 @@ def main() -> None:
         if article.link not in processed_links
     ]
 
-    final_preprocessed_articles = prev_processed_articles.extend(
+    prev_processed_articles.extend(
         apply_preprocessing(
             to_process_articles,
             preprocessor_config.text_processing
         )
     )
 
-    article_repo.save_processed_articles(
-        processed_articles= final_preprocessed_articles,
-        processed_articles_file= preprocessor_config.processed_articles_file
+    final_preprocessed_articles = prev_processed_articles
+
+    article_repo.save_articles(
+        articles= final_preprocessed_articles,
+        articles_file= preprocessor_config.processed_articles_file
     )
 
 

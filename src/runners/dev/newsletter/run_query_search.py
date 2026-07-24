@@ -2,6 +2,7 @@
 Development runner for testing lexical query retrieval.
 """
 
+from models.articles import RetrievedArticle
 from src.config.config_loader import load_lexical_indexer_config, load_preprocessor_config, load_newsletter_config
 from src.services.lexical_indexer.searcher import search
 from src.services.preprocessor.main_preprocessor import process_query
@@ -24,7 +25,7 @@ def main() -> None:
         newsletter_profiles_file= newsletter_config.newsletter_profiles
     )
 
-    all_retrieved_articles = []
+    all_retrieved_articles: list[RetrievedArticle] = []
     try:
         for profile in profiles:
             for query in profile.generated_queries:
@@ -44,9 +45,9 @@ def main() -> None:
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
     finally:
-        article_repo.save_retrieved_articles(
-            retrieved_articles= all_retrieved_articles,
-            retrieved_articles_file= newsletter_config.retrieved_articles_file
+        article_repo.save_articles(
+            articles= all_retrieved_articles,
+            articles_file= newsletter_config.retrieved_articles_file
         )
 
 

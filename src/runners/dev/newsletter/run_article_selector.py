@@ -2,6 +2,7 @@
 Development runner for testing article selection.
 """
 
+from models.articles import RetrievedArticle
 from repositories.article_repository import ArticleRepository
 from repositories.profile_repository import ProfileRepository
 from src.services.article_processor.article_selector import select_candidate_articles
@@ -19,8 +20,9 @@ def main() -> None:
     article_repo = ArticleRepository()
     profile_repo = ProfileRepository()
 
-    retrieved_articles = article_repo.load_retrieved_articles(
-        retrieved_articles_file= newsletter_config.retrieved_articles_file
+    retrieved_articles = article_repo.load_articles(
+        articles_file= newsletter_config.retrieved_articles_file,
+        article_type= RetrievedArticle
     )
     profiles = profile_repo.load_newsletter_profiles(
         newsletter_profiles_file= newsletter_config.newsletter_profiles
@@ -33,7 +35,7 @@ def main() -> None:
             []
         ).append(article)
 
-    all_selected_articles = []
+    all_selected_articles: list[RetrievedArticle] = []
     try:
         for profile in profiles:
             candidate_limit = (
@@ -55,9 +57,9 @@ def main() -> None:
     except KeyboardInterrupt:
             print("\nExecution interrupted by user.")
     finally:        
-        article_repo.save_retrieved_articles(
-            retrieved_articles= all_selected_articles,
-            retrieved_articles_file= article_processor_config.selected_articles_file
+        article_repo.save_articles(
+            articles= all_selected_articles,
+            articles_file= article_processor_config.selected_articles_file
         )
 
 

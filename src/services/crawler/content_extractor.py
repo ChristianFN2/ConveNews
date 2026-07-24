@@ -4,14 +4,14 @@ extracted content to another JSONL file.
 Also generates per-source statistics in JSONL format.
 """
 
-from src.models.articles import CollectedArticle, ExtractedArticle
+from src.models.articles import Article, ExtractedArticle
 
 import requests
 import trafilatura
 
 
 def _download_articles(
-    articles_to_download: list[CollectedArticle]
+    articles_to_download: list[Article]
 ):
     """
     Download and extract content for articles
@@ -44,7 +44,7 @@ def _download_articles(
 
 
 def extract_content_from_articles(
-    articles_to_extract: list[CollectedArticle]
+    articles_to_extract: list[Article]
 ) -> list[ExtractedArticle]:
     """
     Extract content from articles

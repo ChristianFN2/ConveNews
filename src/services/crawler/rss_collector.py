@@ -6,7 +6,7 @@ in the summaries, and saves the parsed articles to a JSONL file.
 
 import feedparser
 from datetime import timedelta
-from src.models.articles import CollectedArticle
+from src.models.articles import Article
 
 from src.utils.datetime_utils import (
     parse_datetime,
@@ -18,14 +18,14 @@ from src.utils.datetime_utils import (
 # RSS parsing
 # -------------------------
 
-def _parse_feed(feed_url: str, max_articles_per_feed: int) -> list[CollectedArticle]:
+def _parse_feed(feed_url: str, max_articles_per_feed: int) -> list[Article]:
     feed = feedparser.parse(feed_url)
-    articles: list[CollectedArticle] = []
+    articles: list[Article] = []
 
     for entry in feed.entries[:max_articles_per_feed]:
         published_dt = parse_datetime(entry.get("published") or entry.get("updated"))
 
-        article = CollectedArticle(
+        article = Article(
             title= entry.get("title", ""),
             source= feed_url,
             link= entry.get("link", ""),
@@ -46,11 +46,11 @@ def _parse_feed(feed_url: str, max_articles_per_feed: int) -> list[CollectedArti
 # -------------------------
 
 def collect_from_rss_feeds(
-    existing_articles: list[CollectedArticle],
+    existing_articles: list[Article],
     feed_urls: list[str],
     max_articles_per_feed: int,
     collection_window_days: int,
-) -> list[CollectedArticle]:
+) -> list[Article]:
     """
     Collect articles from RSS feeds and update the local article collection.
 
@@ -76,7 +76,7 @@ def collect_from_rss_feeds(
 
     # Filter existing articles
     seen_links: set[str] = set()
-    filtered_articles: list[CollectedArticle] = []
+    filtered_articles: list[Article] = []
 
     for article in existing_articles:
         seen_links.add(article.link)
@@ -87,7 +87,7 @@ def collect_from_rss_feeds(
             filtered_articles.append(article)
 
     # Fetch and filter new articles
-    new_articles: list[CollectedArticle] = []
+    new_articles: list[Article] = []
 
     for url in feed_urls:
         articles = _parse_feed(url, max_articles_per_feed)
