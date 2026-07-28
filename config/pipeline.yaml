@@ -49,6 +49,7 @@ newsletter:
   retrieved_articles_file: src/runners/dev/data/output/temp_retrieved_articles.jsonl
   evaluated_articles_file: src/runners/dev/data/output/temp_evaluated_articles.jsonl
   newsletters_file: src/runners/dev/data/output/newsletters.jsonl
+  average_reading_speed_wpm: 200
 
 sources:
   sources_file: data/input/sources.jsonl

@@ -9,6 +9,7 @@ class NewsletterConfig:
     retrieved_articles_file: Path
     evaluated_articles_file: Path
     newsletters_file: Path
+    average_reading_speed_wpm: int
 
 @dataclass
 class Newsletter:

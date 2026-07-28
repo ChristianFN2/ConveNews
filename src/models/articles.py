@@ -19,12 +19,13 @@ class ProcessedArticle(Article):
     detected_language: str
 
 @dataclass
-class RetrievedArticle(Article):
+class CandidateArticle(Article):
     profile_id: int
     lexical_score: float
     detected_language: str
 
 @dataclass
-class EvaluatedArticle(RetrievedArticle):
+class EvaluatedArticle(CandidateArticle):
     relevance_score: float
     article_summary: str
+    translated_title: str

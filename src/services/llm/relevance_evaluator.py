@@ -5,21 +5,19 @@ using the configured LLM.
 
 import json
 
-from src.services.llm.client import generate
-from config.types.llm import (
-    ArticleEvaluation,
-    LLMConfig,
-    LLMResponse,
-)
+from models.articles import CandidateArticle, EvaluatedArticle
+from src.services.llm.client import LLMClient
 
 
 def evaluate_relevance(
-    article_title: str,
+    candidate_article: CandidateArticle,
     article_content: str,
     interest_summary: str,
     target_language: str,
-    config: LLMConfig,
-) -> LLMResponse[ArticleEvaluation]:
+    generated_summary_words: int,
+    client: LLMClient,
+    prompt: str
+) -> EvaluatedArticle:
     """
     Evaluate the relevance of an article for a user profile and
     generate a concise summary.
@@ -31,26 +29,19 @@ def evaluate_relevance(
         interest_summary:
             Interest summary describing the user's interests.
 
-        config:
-            LLM configuration.
-
     Returns:
-        The article evaluation together with the model used.
+        The evaluated article
     """
-    prompt_template = (
-        config.prompts.relevance_evaluation.read_text(
-            encoding="utf-8"
-        )
-    )
 
-    prompt = prompt_template.format(
-        ARTICLE_TITLE=article_title,
+    prompt = prompt.format(
+        ARTICLE_TITLE=candidate_article.title,
         ARTICLE_CONTENT=article_content,
         INTEREST_SUMMARY=interest_summary,
         TARGET_LANGUAGE=target_language,
+        SUMMARY_WORDS=generated_summary_words
     )
 
-    response = generate(prompt, config)
+    response = client.generate(prompt)
 
     text = response.content.strip()
 
@@ -69,14 +60,15 @@ def evaluate_relevance(
 
     evaluation = json.loads(json_text)
 
-    return LLMResponse(
-        content=ArticleEvaluation(
-            relevance_score=float(
-                evaluation["relevance_score"]
-            ),
-            article_summary=evaluation[
-                "article_summary"
-            ].strip(),
-        ),
-        model=response.model,
+    return EvaluatedArticle(
+        title= candidate_article.title,
+        source= candidate_article.source,
+        link= candidate_article.link,
+        published= candidate_article.published,
+        profile_id= candidate_article.profile_id,
+        lexical_score= candidate_article.lexical_score,
+        detected_language= candidate_article.detected_language,
+        relevance_score= evaluation["relevance_score"],
+        article_summary= evaluation["article_summary"],
+        translated_title= evaluation["translated_title"],
     )

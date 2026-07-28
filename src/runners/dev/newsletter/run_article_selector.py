@@ -2,7 +2,7 @@
 Development runner for testing article selection.
 """
 
-from models.articles import RetrievedArticle
+from models.articles import CandidateArticle
 from repositories.article_repository import ArticleRepository
 from repositories.profile_repository import ProfileRepository
 from src.services.article_processor.article_selector import select_candidate_articles
@@ -22,20 +22,20 @@ def main() -> None:
 
     retrieved_articles = article_repo.load_articles(
         articles_file= newsletter_config.retrieved_articles_file,
-        article_type= RetrievedArticle
+        article_type= CandidateArticle
     )
     profiles = profile_repo.load_newsletter_profiles(
         newsletter_profiles_file= newsletter_config.newsletter_profiles
     )
 
-    articles_by_profile = {}
+    articles_by_profile: dict[int, list[CandidateArticle]] = {}
     for article in retrieved_articles:
         articles_by_profile.setdefault(
             article.profile_id,
             []
         ).append(article)
 
-    all_selected_articles: list[RetrievedArticle] = []
+    all_selected_articles: list[CandidateArticle] = []
     try:
         for profile in profiles:
             candidate_limit = (

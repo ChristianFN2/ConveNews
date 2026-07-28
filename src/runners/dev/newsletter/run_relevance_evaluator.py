@@ -2,204 +2,92 @@
 Development runner for testing article relevance evaluation.
 """
 
-import json
-import time
-from pathlib import Path
-
-from src.config.config_loader import load_llm_config
+from models.articles import EvaluatedArticle, ExtractedArticle, CandidateArticle
+from repositories.article_repository import ArticleRepository
+from repositories.profile_repository import ProfileRepository
+from services.llm.client_provider import create_llm_client
+from src.config.config_loader import load_llm_config, load_article_processor_config, load_newsletter_config, load_crawler_config
 from src.services.llm.relevance_evaluator import evaluate_relevance
-
-INPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "selected_articles.jsonl"
-)
-
-ARTICLES_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "data"
-    / "output"
-    / "extracted_articles.jsonl"
-)
-
-OUTPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "evaluated_articles.jsonl"
-)
 
 
 def main() -> None:
     """
     Evaluate the relevance of the selected articles for every user
     profile and generate concise summaries.
-
-    Results are written to a JSONL file and printed to the console.
     """
-    config = load_llm_config()
+    llm_config = load_llm_config()
+    article_processor_config = load_article_processor_config()
+    newsletter_config = load_newsletter_config()
+    crawler_config = load_crawler_config()
 
-    article_lookup = {}
+    profile_repo = ProfileRepository()
+    article_repo = ArticleRepository()
 
-    with open(
-        ARTICLES_FILE,
-        "r",
-        encoding="utf-8",
-    ) as infile:
+    profiles = profile_repo.load_newsletter_profiles(
+        newsletter_profiles_file= newsletter_config.newsletter_profiles
+    )
+    selected_articles = article_repo.load_articles(
+        articles_file= article_processor_config.selected_articles_file,
+        article_type= CandidateArticle
+    )
+    extracted_articles = article_repo.load_articles(
+        articles_file= crawler_config.extracted_articles_file,
+        article_type= ExtractedArticle
+    )
+    extracted_by_link = {
+        article.link: article
+        for article in extracted_articles
+    }
 
-        for line in infile:
+    articles_by_profile: dict[int, list[CandidateArticle]] = {}
+    for article in selected_articles:
+        articles_by_profile.setdefault(
+            article.profile_id,
+            []
+        ).append(article)
 
-            try:
-                article = json.loads(line)
-            except json.JSONDecodeError:
-                continue
 
-            link = article.get("link")
-
-            if not link:
-                continue
-
-            article_lookup[link] = article
+    evaluated_articles: list[EvaluatedArticle] = []
+    client = create_llm_client(llm_config)
+    prompt = llm_config.prompts.relevance_evaluation.read_text(
+        encoding="utf-8"
+    )
 
     try:
+        for profile in profiles:
+            profile_articles = articles_by_profile.get(profile.profile_id)
 
-        with (
-            open(INPUT_FILE, "r", encoding="utf-8") as infile,
-            open(OUTPUT_FILE, "w", encoding="utf-8") as outfile,
-        ):
-
-            for i, line in enumerate(infile, start=1):
-
-                try:
-                    record = json.loads(line)
-                except json.JSONDecodeError:
-                    print(f"Skipping invalid JSON line {i}.")
-                    continue
-
-                print("=" * 80)
-                print(f"Profile {i}")
-                print()
-
-                print("Interest summary:")
-                print(record["interest_summary"])
-                print()
-
-                evaluated_articles = {}
-
-                profile_start = time.perf_counter()
-
-                for language, articles in (
-                    record["selected_articles"].items()
-                ):
-
-                    print(f"[{language}]")
-                    print()
-
-                    evaluated = []
-
-                    for j, article in enumerate(
-                        articles,
-                        start=1,
-                    ):
-
-                        print(
-                            f"Article {j}/{len(articles)}"
-                        )
-                        print(
-                            f"Title: {article['title']}"
-                        )
-
-                        start = time.perf_counter()
-
-                        article_data = article_lookup.get(article["link"])
-
-                        if article_data is None:
-                            print("Article content not found.")
-                            continue
-
-                        response = evaluate_relevance(
-                            article_title=article_data["title"],
-                            article_content=article_data["content"],
-                            interest_summary=record[
-                                "interest_summary"
-                            ],
-                            target_language=language,
-                            config=config,
-                        )
-
-                        elapsed = (
-                            time.perf_counter() - start
-                        )
-
-                        print(
-                            f"Relevance: "
-                            f"{response.content.relevance_score:.1f}"
-                        )
-                        print(
-                            f"Completed in "
-                            f"{elapsed:.1f} s"
-                        )
-                        print()
-
-                        evaluated.append(
-                            {
-                                **article,
-                                "relevance_score": (
-                                    response.content.relevance_score
-                                ),
-                                "article_summary": (
-                                    response.content.article_summary
-                                ),
-                                "evaluation_model": (
-                                    response.model
-                                ),
-                            }
-                        )
-
-                    evaluated_articles[language] = (
-                        evaluated
-                    )
-
-                profile_elapsed = (
-                    time.perf_counter()
-                    - profile_start
+            for article in profile_articles:
+                generated_summary_words = _minutes_to_words(
+                    reading_time_minutes= profile.reading_time_minutes / profile.max_articles_included,
+                    average_reading_speed_wpm= newsletter_config.average_reading_speed_wpm
                 )
-
-                output_record = {
-                    "user_id": record["user_id"],
-                    "profile_id": record["profile_id"],
-                    "interest_description": (
-                        record["interest_description"]
-                    ),
-                    "interest_summary": (
-                        record["interest_summary"]
-                    ),
-                    "selected_keywords": (
-                        record["selected_keywords"]
-                    ),
-                    "queries": record["queries"],
-                    "evaluated_articles": (
-                        evaluated_articles
-                    ),
-                }
-
-                outfile.write(
-                    json.dumps(
-                        output_record,
-                        ensure_ascii=False,
-                    )
+                evaluated_article = evaluate_relevance(
+                    candidate_article= article,
+                    article_content= extracted_by_link.get(article.link).content,
+                    interest_summary= profile.interest_summary,
+                    target_language= profile.target_language,
+                    generated_summary_words=generated_summary_words,
+                    client= client,
+                    prompt= prompt
                 )
-                outfile.write("\n")
-
-                print(
-                    f"Profile completed in "
-                    f"{profile_elapsed:.1f} s"
-                )
-                print()
-
+                evaluated_articles.append(evaluated_article)
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
+    finally:
+        article_repo.save_articles(
+            articles_file= newsletter_config.evaluated_articles_file,
+            articles= evaluated_articles
+        )
+
+def _minutes_to_words(
+    reading_time_minutes: float,
+    average_reading_speed_wpm: int,
+) -> int:
+    return round(
+        reading_time_minutes
+        * average_reading_speed_wpm
+    )
 
 
 if __name__ == "__main__":

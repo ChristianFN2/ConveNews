@@ -2,13 +2,13 @@
 Utilities for selecting the most promising retrieved articles.
 """
 
-from models.articles import RetrievedArticle
+from models.articles import CandidateArticle
 
 
 def select_candidate_articles(
-    candidates: list[RetrievedArticle],
+    candidates: list[CandidateArticle],
     max_articles: int,
-) -> list[RetrievedArticle]:
+) -> list[CandidateArticle]:
     """
     Select the best candidate articles
 
@@ -33,8 +33,8 @@ def select_candidate_articles(
     return deduplicated[:max_articles]
 
 def _deduplicate_articles(
-    articles: list[RetrievedArticle],
-) -> list[RetrievedArticle]:
+    articles: list[CandidateArticle],
+) -> list[CandidateArticle]:
     """
     Remove duplicate articles based on their link.
 

@@ -29,27 +29,19 @@ def _resolve_path(path: str) -> Path | None:
 
 
 def load_crawler_config() -> CrawlerConfig:
-    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-
-    crawler = raw["crawler"]
+    crawler = _load_config_section("crawler")
 
     return CrawlerConfig(
             feed_urls_file=_resolve_path(crawler["feed_urls_file"]),
             collected_articles_file=_resolve_path(crawler["collected_articles_file"]),
             extracted_articles_file=_resolve_path(crawler["extracted_articles_file"]),
-            stats_file=_resolve_path(crawler.get("stats_file")),
             max_articles_per_feed=crawler["max_articles_per_feed"],
-            state_file=_resolve_path(crawler.get("state_file")),
             collection_window_days=crawler["collection_window_days"],
             extraction_retention_days=crawler["extraction_retention_days"]
         )
 
 def load_preprocessor_config() -> PreprocessorConfig:
-    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-
-    preprocessor = raw["preprocessor"]
+    preprocessor = _load_config_section("preprocessor")
 
     return PreprocessorConfig(
             input_articles_file=_resolve_path(preprocessor["input_articles_file"]),
@@ -58,10 +50,7 @@ def load_preprocessor_config() -> PreprocessorConfig:
         )
 
 def load_lexical_indexer_config() -> LexicalIndexerConfig:
-    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-
-    lexical_indexer = raw["lexical_indexer"]
+    lexical_indexer = _load_config_section("lexical_indexer")
 
     return LexicalIndexerConfig(
             input_articles_file=_resolve_path(lexical_indexer["input_articles_file"]),
@@ -72,10 +61,7 @@ def load_lexical_indexer_config() -> LexicalIndexerConfig:
         )
 
 def load_llm_config() -> LLMConfig:
-    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-
-    llm = raw["llm"]
+    llm = _load_config_section("llm")
 
     return LLMConfig(
             models=llm["models"],
@@ -92,10 +78,7 @@ def load_llm_config() -> LLMConfig:
         )
 
 def load_article_processor_config() -> ArticleProcessorConfig:
-    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-
-    article_processor = raw["article_processor"]
+    article_processor = _load_config_section("article_processor")
 
     return ArticleProcessorConfig(
             selection_margin=article_processor["selection_margin"],
@@ -103,10 +86,7 @@ def load_article_processor_config() -> ArticleProcessorConfig:
         )
 
 def load_newsletter_config() -> NewsletterConfig:
-    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-
-    newsletter = raw["newsletter"]
+    newsletter = _load_config_section("newsletter")
 
     return NewsletterConfig(
             newsletter_profiles=_resolve_path(
@@ -117,14 +97,18 @@ def load_newsletter_config() -> NewsletterConfig:
             retrieved_articles_file= _resolve_path(newsletter["retrieved_articles_file"]),
             evaluated_articles_file= _resolve_path(newsletter["evaluated_articles_file"]),
             newsletters_file= _resolve_path(newsletter["newsletters_file"]),
+            average_reading_speed_wpm= newsletter["average_reading_speed_wpm"]
         )
 
 def load_source_config() -> SourceConfig:
-    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-
-    sources = raw["sources"]
+    sources = _load_config_section("sources")
 
     return SourceConfig(
             sources_file=_resolve_path(sources["sources_file"]),
         )
+
+def _load_config_section(section: str):
+    with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    return raw[section]

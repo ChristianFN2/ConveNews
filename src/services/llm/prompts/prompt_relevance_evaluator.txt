@@ -3,7 +3,7 @@ You are an expert news editor specialized in personalized news recommendations.
 Task:
 Evaluate how valuable the provided news article would be for inclusion in a personalized newsletter based on the user's interests.
 
-Then, produce a concise summary of the article focused on the information most relevant to those interests.
+Then, translate the article title and produce a concise summary of the article focused on the information most relevant to those interests.
 
 Assume that only the highest-scoring articles will be included in the final newsletter.
 
@@ -28,21 +28,27 @@ Instructions:
    - 10.0 = highly relevant and an excellent candidate for inclusion.
    - Use decimal values whenever appropriate.
 
-3. Produce a concise summary intended for the final newsletter:
+3. Translate the article title into {TARGET_LANGUAGE}:
+   - preserve the original meaning.
+   - do not summarize or rewrite it.
+   - use a natural journalistic style.
+
+4. Produce a concise summary intended for the final newsletter:
    - focus on the information most relevant to the user's interests.
    - preserve the key facts and context.
    - remain faithful to the article.
    - do not speculate or invent information.
    - do not include personal opinions.
    - avoid introductory or concluding phrases.
-   - write approximately 80–120 words.
+   - write approximately {SUMMARY_WORDS} words.
    - write in {TARGET_LANGUAGE}.
 
-4. Return only valid JSON.
+5. Return only valid JSON.
 
 Output format:
 
 {{
-    "relevance_score": <float>,
-    "article_summary": "<summary>"
+   "relevance_score": <float>,
+   "translated_title": "<translated title>",
+   "article_summary": "<summary>"
 }}
