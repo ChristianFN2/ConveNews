@@ -41,22 +41,20 @@ def evaluate_relevance(
         SUMMARY_WORDS=generated_summary_words
     )
 
-    response = client.generate(prompt)
+    response_text = client.generate(prompt).strip()
 
-    text = response.content.strip()
+    if response_text.startswith("```json"):
+        response_text = response_text[7:]
 
-    if text.startswith("```json"):
-        text = text[7:]
+    if response_text.endswith("```"):
+        response_text = response_text[:-3]
 
-    if text.endswith("```"):
-        text = text[:-3]
+    response_text = response_text.strip()
 
-    text = text.strip()
+    start = response_text.find("{")
+    end = response_text.rfind("}")
 
-    start = text.find("{")
-    end = text.rfind("}")
-
-    json_text = text[start:end + 1]
+    json_text = response_text[start:end + 1]
 
     evaluation = json.loads(json_text)
 

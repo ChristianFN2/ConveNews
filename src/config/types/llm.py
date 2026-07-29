@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from typing import TypeVar, Generic
-
-ContentT = TypeVar("ContentT")
 
 @dataclass
 class PromptConfig:
@@ -21,13 +18,3 @@ class LLMConfig:
     max_retries: int
     timeout: float
     prompts: PromptConfig
-
-@dataclass
-class LLMResponse(Generic[ContentT]):
-    content: ContentT
-    model: str
-
-@dataclass
-class ArticleEvaluation:
-    relevance_score: float
-    article_summary: str

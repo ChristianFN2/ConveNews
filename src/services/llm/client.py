@@ -30,7 +30,7 @@ class LLMClient:
     def generate(
         self,
         prompt: str
-    ) -> LLMResponse[str]:
+    ) -> str:
         """
         Execute a completion using the first available configured model.
 
@@ -86,10 +86,7 @@ class LLMClient:
 
                     _last_successful_model = model
                     print(f"Model '{model}' responded successfully.")
-                    return LLMResponse(
-                        content=response.text,
-                        model=model,
-                    )
+                    return response.text
 
                 except (APITimeoutError):
                     print(

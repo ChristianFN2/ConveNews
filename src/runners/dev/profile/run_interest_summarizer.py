@@ -31,14 +31,14 @@ def main() -> None:
             if not profile.is_initialization_pending:
                 continue
 
-            response = summarize_interests(
+            summarized_interests = summarize_interests(
                 interest_description=profile.interest_description,
                 selected_keywords=profile.selected_keywords,
                 client=client,
                 prompt=prompt
             )
 
-            profile.interest_summary = response.content
+            profile.interest_summary = summarized_interests
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
         return

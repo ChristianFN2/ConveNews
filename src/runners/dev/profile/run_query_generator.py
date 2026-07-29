@@ -46,7 +46,7 @@ def main() -> None:
                 client=client,
                 prompt=prompt
             )
-            profile.generated_queries.extend(generated_queries.content)
+            profile.generated_queries = generated_queries
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
         return
