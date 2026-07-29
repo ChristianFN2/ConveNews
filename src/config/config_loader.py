@@ -1,6 +1,7 @@
 from pathlib import Path
 import yaml
 
+from config.types.application import ApplicationConfig
 from src.config.types.crawler import CrawlerConfig
 from src.config.types.sources import SourceConfig
 from src.config.types.preprocessor import PreprocessorConfig, TextProcessing
@@ -97,7 +98,9 @@ def load_newsletter_config() -> NewsletterConfig:
             retrieved_articles_file= _resolve_path(newsletter["retrieved_articles_file"]),
             evaluated_articles_file= _resolve_path(newsletter["evaluated_articles_file"]),
             newsletters_file= _resolve_path(newsletter["newsletters_file"]),
-            average_reading_speed_wpm= newsletter["average_reading_speed_wpm"]
+            average_reading_speed_wpm= newsletter["average_reading_speed_wpm"],
+            newsletter_template= newsletter["templates"]["newsletter_template"],
+            article_template= newsletter["templates"]["article_template"],
         )
 
 def load_source_config() -> SourceConfig:
@@ -106,6 +109,14 @@ def load_source_config() -> SourceConfig:
     return SourceConfig(
             sources_file=_resolve_path(sources["sources_file"]),
         )
+
+def load_application_config() -> ApplicationConfig:
+    app = _load_config_section("application")
+
+    return ApplicationConfig(
+        site_url= app["site_url"],
+        about_url= app["about_url"]
+    )
 
 def _load_config_section(section: str):
     with DEFAULT_CONFIG_FILE.open("r", encoding="utf-8") as f:

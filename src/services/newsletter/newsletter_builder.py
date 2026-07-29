@@ -2,104 +2,118 @@
 Utilities to build localized HTML newsletters.
 """
 
-from dataclasses import asdict
-from pathlib import Path
 import re
 
-from src.services.newsletter.templates.localization import LOCALIZATION
-from config.types.newsletter import Newsletter, NewsletterContent, NewsletterConfig, NewsletterArticle
-from src.services.newsletter.sources import NEWS_SOURCES
-
-
-_TEMPLATE_DIR = Path(__file__).parent / "templates"
+from models.articles import EvaluatedArticle
+from models.profiles import NewsletterProfile
+from models.sources import Source
 
 _MARKER_PATTERN = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
 
 
 def build_newsletter(
-    content: NewsletterContent,
-    config: NewsletterConfig
-) -> Newsletter:
+    articles: list[EvaluatedArticle],
+    profile: NewsletterProfile,
+    newsletter_template: str,
+    article_template: str,
+    sources_by_link: dict[str, Source],
+    localization: dict[str, str],
+    site_url: str,
+    about_url: str,
+    generation_date: str
+) -> str:
     """
     Build a localized HTML newsletter.
 
-    The builder fills the HTML templates by replacing template
-    markers with localized texts and newsletter content.
+    The builder fills the provided HTML templates by replacing the
+    expected template markers with the corresponding newsletter
+    content and localized texts.
+
+    Args:
+        articles:
+            Articles to include in the newsletter.
+
+        profile:
+            Newsletter profile used to build the newsletter.
+
+        newsletter_template:
+            HTML template of the complete newsletter.
+
+            Expected markers:
+                {{LANGUAGE}}
+                {{PROFILE_TITLE}}
+                {{GENERATED_ON_LABEL}}
+                {{GENERATION_DATE}}
+                {{PROFILE_DETAILS}}
+                {{ARTICLES}}
+                {{CONVENEWS_URL}}
+                {{CONVENEWS_NAME}}
+                {{ABOUT_TEXT}}
+                {{ABOUT_URL}}
+                {{ABOUT_LINK_LABEL}}
+
+        article_template:
+            HTML template of a single newsletter article.
+
+            Expected markers:
+                {{ARTICLE_TITLE}}
+                {{ARTICLE_SUMMARY}}
+                {{SOURCE_LABEL}}
+                {{ARTICLE_SOURCE}}
+                {{ARTICLE_URL}}
+                {{READ_ARTICLE_LABEL}}
+
+        sources_by_link:
+            Mapping from source link to the corresponding Source.
+
+        localization:
+            Dictionary containing the localized strings required by
+            the templates.
+
+        site_url:
+            URL of the site.
+
+        about_url:
+            URL of the page describing the site.
+
+    Returns:
+        The generated newsletter HTML.
     """
 
-    target_language = content.target_language
-
-    newsletter_template = _load_template(
-        "newsletter.html",
-    )
-
-    article_template = _load_template(
-        "article.html",
-    )
-
-    profile_details_html = (
-        _build_profile_details_html(
-            interest_description=(
-                content.interest_description
-            ),
-            keywords=content.keywords,
-            localization=(
-                LOCALIZATION[target_language]
-            ),
-        )
-    )
-
-    articles = _select_articles(
-        content.articles,
-        config,
+    profile_details_html = _build_profile_details_html(
+        interest_description= profile.interest_description,
+        keywords= profile.selected_keywords,
+        localization= localization,
     )
 
     articles_html = _build_articles_html(
-        article_template=article_template,
-        articles=articles,
-        localization=LOCALIZATION[target_language],
+        article_template= article_template,
+        articles= articles,
+        localization= localization,
+        sources_by_link= sources_by_link
     )
 
-    values = asdict(content)
-
-    values["PROFILE_DETAILS"] = (
-        profile_details_html
-    )
-
-    values["ARTICLES"] = articles_html
-
-    values["GENERATION_DATE"] = (
-        content.generation_date
-    )
-
-    values = {
-        key.upper(): str(value)
-        for key, value in values.items()
+    template_values = {
+        "LANGUAGE": profile.target_language,
+        "PROFILE_TITLE": profile.profile_title,
+        "GENERATION_DATE": generation_date,
+        "PROFILE_DETAILS": profile_details_html,
+        "ARTICLES": articles_html,
+        "CONVENEWS_URL": site_url,
+        "ABOUT_URL": about_url,
     }
 
     html = _replace_markers(
         newsletter_template,
-        LOCALIZATION[target_language],
+        localization,
     )
 
     html = _replace_markers(
         html,
-        values,
+        template_values,
     )
 
-    return Newsletter(html=html)
-
-def _get_source_name(
-    source_url: str,
-) -> str:
-    """
-    Return a human-readable source name.
-    """
-
-    return NEWS_SOURCES.get(
-        source_url,
-        source_url,
-    )
+    return html
 
 def _build_profile_details_html(
     interest_description: str,
@@ -147,46 +161,21 @@ def _build_profile_details_html(
     </details>
     """
 
-def _select_articles(
-    articles: list[NewsletterArticle],
-    config: NewsletterConfig,
-) -> list[NewsletterArticle]:
-    articles = [
-        article
-        for article in articles
-        if (
-            article.relevance_score
-            >= config.relevance_threshold
-        )
-    ]
-
-    articles.sort(
-        key=lambda article: (
-            article.relevance_score
-        ),
-        reverse=True,
-    )
-
-    articles = articles[
-        : config.max_articles
-    ]
-
-    return articles
-
 def _build_articles_html(
     article_template: str,
-    articles: list[NewsletterArticle],
+    articles: list[EvaluatedArticle],
     localization: dict[str, str],
+    sources_by_link: dict[str, Source]
 ) -> str:
 
     fragments = []
 
     for article in articles:
 
-        values = {
+        template_values = {
             "ARTICLE_TITLE": article.title,
             "ARTICLE_SUMMARY": article.article_summary,
-            "ARTICLE_SOURCE": _get_source_name(article.source),
+            "ARTICLE_SOURCE": sources_by_link.get(article.source).name,
             "ARTICLE_URL": article.link,
         }
 
@@ -197,7 +186,7 @@ def _build_articles_html(
 
         html = _replace_markers(
             html,
-            values,
+            template_values,
         )
 
         fragments.append(html)
@@ -223,7 +212,7 @@ def _build_keywords_html(
 
 def _replace_markers(
     template: str,
-    values: dict[str, str],
+    marker_to_value: dict[str, str],
 ) -> str:
     """
     Replace every template marker found in the provided mapping.
@@ -237,7 +226,7 @@ def _replace_markers(
 
         marker = match.group(1)
 
-        return values.get(
+        return marker_to_value.get(
             marker,
             match.group(0),
         )
@@ -245,15 +234,4 @@ def _replace_markers(
     return _MARKER_PATTERN.sub(
         replace,
         template,
-    )
-
-
-def _load_template(
-    filename: str,
-) -> str:
-
-    path = _TEMPLATE_DIR / filename
-
-    return path.read_text(
-        encoding="utf-8",
     )

@@ -50,6 +50,13 @@ newsletter:
   evaluated_articles_file: src/runners/dev/data/output/temp_evaluated_articles.jsonl
   newsletters_file: src/runners/dev/data/output/newsletters.jsonl
   average_reading_speed_wpm: 200
+  templates:
+    newsletter_template: src/services/newsletter/templates/newsletter.html
+    article_template: src/services/newsletter/templates/article.html
 
 sources:
   sources_file: data/input/sources.jsonl
+
+application:
+  site_url: https://github.com/ChristianFN2/ConveNews
+  about_url: https://github.com/ChristianFN2/ConveNews#readme-ov-file

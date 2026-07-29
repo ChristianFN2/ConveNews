@@ -2,45 +2,18 @@
 Build HTML newsletters from evaluated articles.
 """
 
+from models.articles import EvaluatedArticle
+from models.newsletters import DeliveryStatus, Newsletter
+from models.profiles import NewsletterProfile
+from repositories.article_repository import ArticleRepository
+from repositories.newsletter_repository import NewsletterRepository
+from repositories.profile_repository import ProfileRepository
+from repositories.source_repository import SourceRepository
+from services.newsletter.templates.localization import LOCALIZATION
 from src.utils.datetime_utils import get_current_day
-import json
-from pathlib import Path
-import time
 
-from src.config.config_loader import load_newsletter_config
-from src.services.newsletter.newsletter_builder import (
-    build_newsletter,
-)
-from config.types.newsletter import (
-    NewsletterContent, NewsletterArticle
-)
-
-
-INPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "evaluated_articles.jsonl"
-)
-
-OUTPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "newsletters.jsonl"
-)
-
-CONVENEWS_URL = (
-    "https://github.com/ChristianFN2/ConveNews"
-)
-
-ABOUT_URL = (
-    "https://github.com/ChristianFN2/ConveNews#readme-ov-file"
-)
-
-DEFAULT_PROFILE_TITLE = (
-    "My Newsletter"
-)
+from src.config.config_loader import load_newsletter_config, load_application_config, load_source_config
+from src.services.newsletter.newsletter_builder import build_newsletter
 
 
 def main() -> None:
@@ -48,129 +21,105 @@ def main() -> None:
     Build one newsletter for every user profile.
     """
 
-    config = load_newsletter_config()
+    newsletter_config = load_newsletter_config()
+    app_config = load_application_config()
+    source_config = load_source_config()
 
-    with (
-        open(
-            INPUT_FILE,
-            "r",
-            encoding="utf-8",
-        ) as infile,
-        open(
-            OUTPUT_FILE,
-            "w",
-            encoding="utf-8",
-        ) as outfile,
+    article_repo = ArticleRepository()
+    profile_repo = ProfileRepository()
+    newsletter_repo = NewsletterRepository()
+    source_repo = SourceRepository()
+
+    evaluated_articles = article_repo.load_articles(
+        articles_file= newsletter_config.evaluated_articles_file,
+        article_type= EvaluatedArticle
+    )
+    profiles = profile_repo.load_newsletter_profiles(
+        newsletter_profiles_file= newsletter_config.newsletter_profiles
+    )
+    sources = source_repo.load_sources(
+        sources_file= source_config.sources_file
+    )
+
+    articles_by_profile_id: dict[int, list[EvaluatedArticle]] = {}
+    for article in evaluated_articles:
+        articles_by_profile_id.setdefault(
+            article.profile_id,
+            []
+        ).append(article)
+
+    profiles_by_id: dict[int, NewsletterProfile] = {
+        profile.profile_id: profile
+        for profile in profiles
+    }
+
+    sources_by_link = {
+        source.link: source
+        for source in sources
+    }
+
+    last_newsletter_id = newsletter_repo.get_last_id(
+        newsletters_file= newsletter_config.newsletters_file
+    )
+
+    built_newsletters: list[Newsletter] = {}
+    for profile_id in articles_by_profile_id:
+
+        profile_articles = articles_by_profile_id.get(profile_id)
+        newsletter_profile = profiles_by_id.get(profile_id)
+
+        final_profile_articles = _get_final_articles(
+            profile_articles,
+            newsletter_config.relevance_threshold,
+            newsletter_profile.max_articles_included
+        )
+
+        generation_date = get_current_day()
+
+        newsletter_content = build_newsletter(
+            articles= final_profile_articles,
+            profile= newsletter_profile,
+            newsletter_template= newsletter_config.newsletter_template,
+            article_template= newsletter_config.article_template,
+            sources_by_link= sources_by_link,
+            localization= LOCALIZATION[newsletter_profile.target_language],
+            site_url= app_config.site_url,
+            about_url= app_config.about_url,
+            generation_date= generation_date
+        )
+
+        last_newsletter_id += 1
+        built_newsletters.append(Newsletter(
+            newsletter_id= last_newsletter_id,
+            profile_id= newsletter_profile.profile_id,
+            generated_at= generation_date,
+            content= newsletter_content,
+            delivery_status= DeliveryStatus.PENDING
+        ))
+
+    newsletter_repo.append_newsletters(built_newsletters)
+
+
+def _get_final_articles(
+        profile_articles: list[EvaluatedArticle],
+        relevance_threshold: float,
+        max_articles_included: int
     ):
+    filtered_articles = [
+        article
+        for article in profile_articles
+        if (
+            article.relevance_score
+            >= relevance_threshold
+        )
+    ]
 
-        for i, line in enumerate(
-            infile,
-            start=1,
-        ):
+    filtered_articles.sort(
+        key=lambda article: article.relevance_score,
+        reverse=True,
+    )
 
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-
-                print(
-                    f"Skipping invalid JSON line {i}."
-                )
-
-                continue
-
-            print("=" * 80)
-            print(f"Profile {i}")
-            print()
-
-            start = time.perf_counter()
-
-            all_articles = []
-
-            for articles in record[
-                "evaluated_articles"
-            ].values():
-
-                all_articles.extend(
-                    NewsletterArticle(
-                        title=article["title"],
-                        source=article["source"],
-                        link=article["link"],
-                        published=article["published"],
-                        article_summary=article[
-                            "article_summary"
-                        ],
-                        relevance_score=article[
-                            "relevance_score"
-                        ],
-                    )
-                    for article in articles
-                )
-
-            content = NewsletterContent(
-                profile_title=record[
-                    "profile_title"
-                ],
-                interest_description=record[
-                    "interest_description"
-                ],
-                keywords=record[
-                    "selected_keywords"
-                ],
-                articles=all_articles,
-                generation_date=get_current_day(),
-                target_language=record["target_language"],
-                convenews_url=CONVENEWS_URL,
-                about_url=ABOUT_URL,
-            )
-
-            newsletter = build_newsletter(
-                content,
-                config=config,
-            )
-
-            print(
-                f"{len(all_articles)} "
-                f"candidate articles"
-            )
-
-            output_record = {
-                "user_id": record["user_id"],
-                "profile_id": record["profile_id"],
-                "profile_title": record[
-                    "profile_title"
-                ],
-                "interest_description": record[
-                    "interest_description"
-                ],
-                "interest_summary": record[
-                    "interest_summary"
-                ],
-                "selected_keywords": record[
-                    "selected_keywords"
-                ],
-                "newsletter": newsletter.html,
-            }
-
-            outfile.write(
-                json.dumps(
-                    output_record,
-                    ensure_ascii=False,
-                )
-            )
-
-            outfile.write("\n")
-
-            elapsed = (
-                time.perf_counter()
-                - start
-            )
-
-            print(
-                f"Completed in "
-                f"{elapsed:.1f} s"
-            )
-
-            print()
+    return filtered_articles[:max_articles_included]
 
 
 if __name__ == "__main__":
