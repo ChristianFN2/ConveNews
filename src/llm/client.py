@@ -7,7 +7,7 @@ import time
 from llama_index.llms.openai_like import OpenAILike
 from openai import APIConnectionError, APITimeoutError
 
-from config.types.llm import LLMConfig, LLMResponse
+from config.types.llm import LLMConfig
 
 
 class LLMClient:

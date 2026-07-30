@@ -5,7 +5,7 @@ Development runner for the interest summarizer.
 from src.config.config_loader import load_llm_config, load_newsletter_config
 from src.services.llm.interest_summarizer import summarize_interests
 from src.repositories.profile_repository import ProfileRepository
-from src.services.llm.client_provider import create_llm_client
+from llm.client_provider import create_llm_client
 
 
 def main() -> None:

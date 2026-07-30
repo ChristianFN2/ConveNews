@@ -1,6 +1,6 @@
 import os
 
-from services.llm.client import LLMClient
+from llm.client import LLMClient
 from config.types.llm import LLMConfig
 
 

@@ -6,7 +6,7 @@ using the configured LLM.
 import json
 
 from models.articles import CandidateArticle, EvaluatedArticle
-from src.services.llm.client import LLMClient
+from llm.client import LLMClient
 
 
 def evaluate_relevance(

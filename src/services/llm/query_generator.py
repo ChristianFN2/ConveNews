@@ -5,7 +5,7 @@ Utilities for generating lexical search queries using the configured LLM.
 import json
 
 from models.queries import SearchQuery
-from src.services.llm.client import LLMClient
+from llm.client import LLMClient
 
 
 def generate_queries(
