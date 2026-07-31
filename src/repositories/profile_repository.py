@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from models.queries import SearchQuery
+from src.models.queries import SearchQuery
 from src.models.profiles import NewsletterProfile
 from src.utils import jsonl_file_manager as file_manager
 

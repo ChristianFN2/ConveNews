@@ -5,7 +5,7 @@ This script loads the crawler configuration
 file and executes the complete crawling pipeline.
 """
 
-from models.articles import Article, ExtractedArticle
+from src.models.articles import Article, ExtractedArticle
 from src.config.config_loader import load_crawler_config
 from src.config.config_loader import load_source_config
 from src.services.crawler import rss_collector, content_extractor, extracted_articles_cleaner

@@ -2,7 +2,7 @@
 Utilities for selecting the most promising retrieved articles.
 """
 
-from models.articles import CandidateArticle
+from src.models.articles import CandidateArticle
 
 
 def select_candidate_articles(

@@ -4,9 +4,9 @@ Utilities to build localized HTML newsletters.
 
 import re
 
-from models.articles import EvaluatedArticle
-from models.profiles import NewsletterProfile
-from models.sources import Source
+from src.models.articles import EvaluatedArticle
+from src.models.profiles import NewsletterProfile
+from src.models.sources import Source
 
 _MARKER_PATTERN = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
 

@@ -2,9 +2,9 @@
 Development runner for testing article selection.
 """
 
-from models.articles import CandidateArticle
-from repositories.article_repository import ArticleRepository
-from repositories.profile_repository import ProfileRepository
+from src.models.articles import CandidateArticle
+from src.repositories.article_repository import ArticleRepository
+from src.repositories.profile_repository import ProfileRepository
 from src.services.article_processor.article_selector import select_candidate_articles
 
 from src.config.config_loader import load_article_processor_config, load_newsletter_config

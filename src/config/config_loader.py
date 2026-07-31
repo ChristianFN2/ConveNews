@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
 
-from config.types.application import ApplicationConfig
+from src.config.types.application import ApplicationConfig
 from src.config.types.crawler import CrawlerConfig
 from src.config.types.sources import SourceConfig
 from src.config.types.preprocessor import PreprocessorConfig, TextProcessing

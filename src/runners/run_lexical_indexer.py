@@ -5,7 +5,7 @@ This script loads the indexing configuration
 and executes the complete indexing process.
 """
 
-from models.articles import ProcessedArticle
+from src.models.articles import ProcessedArticle
 from src.config.config_loader import load_lexical_indexer_config
 from src.services.lexical_indexer import main_indexer
 from src.repositories.article_repository import ArticleRepository

@@ -5,7 +5,7 @@ This script loads the preprocessing configuratio
 and executes the complete preprocessing process.
 """
 
-from models.articles import ExtractedArticle, ProcessedArticle
+from src.models.articles import ExtractedArticle, ProcessedArticle
 from src.config.config_loader import load_preprocessor_config
 from src.services.preprocessor.main_preprocessor import apply_preprocessing
 from src.repositories.article_repository import ArticleRepository

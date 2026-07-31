@@ -2,14 +2,14 @@
 Build HTML newsletters from evaluated articles.
 """
 
-from models.articles import EvaluatedArticle
-from models.newsletters import DeliveryStatus, Newsletter
-from models.profiles import NewsletterProfile
-from repositories.article_repository import ArticleRepository
-from repositories.newsletter_repository import NewsletterRepository
-from repositories.profile_repository import ProfileRepository
-from repositories.source_repository import SourceRepository
-from services.newsletter.templates.localization import LOCALIZATION
+from src.models.articles import EvaluatedArticle
+from src.models.newsletters import DeliveryStatus, Newsletter
+from src.models.profiles import NewsletterProfile
+from src.repositories.article_repository import ArticleRepository
+from src.repositories.newsletter_repository import NewsletterRepository
+from src.repositories.profile_repository import ProfileRepository
+from src.repositories.source_repository import SourceRepository
+from src.services.newsletter.templates.localization import LOCALIZATION
 from src.utils.datetime_utils import get_current_day
 
 from src.config.config_loader import load_newsletter_config, load_application_config, load_source_config

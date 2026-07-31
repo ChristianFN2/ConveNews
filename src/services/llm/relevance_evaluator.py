@@ -5,8 +5,8 @@ using the configured LLM.
 
 import json
 
-from models.articles import CandidateArticle, EvaluatedArticle
-from llm.client import LLMClient
+from src.models.articles import CandidateArticle, EvaluatedArticle
+from src.llm.client import LLMClient
 
 
 def evaluate_relevance(

@@ -2,7 +2,7 @@
 Utilities for summarizing user interests using the configured LLM.
 """
 
-from llm.client import LLMClient
+from src.llm.client import LLMClient
 
 
 def summarize_interests(

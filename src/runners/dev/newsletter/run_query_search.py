@@ -2,7 +2,7 @@
 Development runner for testing lexical query retrieval.
 """
 
-from models.articles import CandidateArticle
+from src.models.articles import CandidateArticle
 from src.config.config_loader import load_lexical_indexer_config, load_preprocessor_config, load_newsletter_config
 from src.services.lexical_indexer.searcher import search
 from src.services.preprocessor.main_preprocessor import process_query

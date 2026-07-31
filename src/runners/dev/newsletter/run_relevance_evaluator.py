@@ -2,10 +2,10 @@
 Development runner for testing article relevance evaluation.
 """
 
-from models.articles import EvaluatedArticle, ExtractedArticle, CandidateArticle
-from repositories.article_repository import ArticleRepository
-from repositories.profile_repository import ProfileRepository
-from llm.client_provider import create_llm_client
+from src.models.articles import EvaluatedArticle, ExtractedArticle, CandidateArticle
+from src.repositories.article_repository import ArticleRepository
+from src.repositories.profile_repository import ProfileRepository
+from src.llm.client_provider import create_llm_client
 from src.config.config_loader import load_llm_config, load_article_processor_config, load_newsletter_config, load_crawler_config
 from src.services.llm.relevance_evaluator import evaluate_relevance
 

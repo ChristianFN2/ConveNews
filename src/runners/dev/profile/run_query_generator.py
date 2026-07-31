@@ -6,7 +6,7 @@ from src.config.config_loader import load_llm_config, load_newsletter_config, lo
 from src.services.llm.query_generator import generate_queries
 from src.repositories.profile_repository import ProfileRepository
 from src.repositories.source_repository import SourceRepository
-from llm.client_provider import create_llm_client
+from src.llm.client_provider import create_llm_client
 
 
 def main() -> None:
