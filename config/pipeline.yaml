@@ -44,7 +44,7 @@ article_processor:
 newsletter:
   relevance_threshold: 5.0
   newsletter_profiles: src/runners/dev/data/newsletter_profiles.jsonl
-  retrieved_articles_file: src/runners/dev/data/output/temp_retrieved_articles.jsonl
+  candidate_articles_file: src/runners/dev/data/output/temp_candidate_articles.jsonl
   evaluated_articles_file: src/runners/dev/data/output/temp_evaluated_articles.jsonl
   newsletters_file: src/runners/dev/data/output/newsletters.jsonl
   average_reading_speed_wpm: 200

@@ -5,7 +5,7 @@ from pathlib import Path
 class NewsletterConfig:
     newsletter_profiles: Path
     relevance_threshold: float
-    retrieved_articles_file: Path
+    candidate_articles_file: Path
     evaluated_articles_file: Path
     newsletters_file: Path
     average_reading_speed_wpm: int

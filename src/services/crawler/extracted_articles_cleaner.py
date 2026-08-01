@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from src.models.articles import ExtractedArticle
-from src.utils.datetime_utils import utc_now
+from src.utils.datetime_utils import utc_now, parse_datetime
 
 def get_expired_articles(
         unfiltered_articles: list[ExtractedArticle], 
@@ -12,5 +12,5 @@ def get_expired_articles(
     return [
         article
         for article in unfiltered_articles
-        if article.published < cutoff
+        if parse_datetime(article.published) < cutoff
     ]

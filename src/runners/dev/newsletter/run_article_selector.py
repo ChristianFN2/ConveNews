@@ -20,8 +20,8 @@ def main() -> None:
     article_repo = ArticleRepository()
     profile_repo = ProfileRepository()
 
-    retrieved_articles = article_repo.load_articles(
-        articles_file= newsletter_config.retrieved_articles_file,
+    candidate_articles = article_repo.load_articles(
+        articles_file= newsletter_config.candidate_articles_file,
         article_type= CandidateArticle
     )
     profiles = profile_repo.load_newsletter_profiles(
@@ -29,7 +29,7 @@ def main() -> None:
     )
 
     articles_by_profile: dict[int, list[CandidateArticle]] = {}
-    for article in retrieved_articles:
+    for article in candidate_articles:
         articles_by_profile.setdefault(
             article.profile_id,
             []

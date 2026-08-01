@@ -19,10 +19,13 @@ class ProcessedArticle(Article):
     detected_language: str
 
 @dataclass
-class CandidateArticle(Article):
-    profile_id: int
+class RetrievedArticle(Article):
     lexical_score: float
     detected_language: str
+
+@dataclass
+class CandidateArticle(RetrievedArticle):
+    profile_id: int
 
 @dataclass
 class EvaluatedArticle(CandidateArticle):

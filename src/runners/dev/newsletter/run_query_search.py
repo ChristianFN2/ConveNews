@@ -25,7 +25,7 @@ def main() -> None:
         newsletter_profiles_file= newsletter_config.newsletter_profiles
     )
 
-    all_retrieved_articles: list[CandidateArticle] = []
+    all_candidate_articles: list[CandidateArticle] = []
     try:
         for profile in profiles:
             for query in profile.generated_queries:
@@ -39,15 +39,25 @@ def main() -> None:
                     included_sources=profile.included_sources,
                     covered_period_days=profile.covered_period_days
                 ) 
-                for article in retrieved_articles:
-                    article.profile_id=profile.profile_id
-                all_retrieved_articles.extend(retrieved_articles)
+                candidate_articles = [
+                    CandidateArticle(
+                        title= article.title,
+                        source= article.source,
+                        link= article.link,
+                        published= article.published,
+                        lexical_score= article.lexical_score,
+                        detected_language= article.detected_language,
+                        profile_id= profile.profile_id
+                    )
+                    for article in retrieved_articles
+                ]
+                all_candidate_articles.extend(candidate_articles)
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
     finally:
         article_repo.save_articles(
-            articles= all_retrieved_articles,
-            articles_file= newsletter_config.retrieved_articles_file
+            articles= all_candidate_articles,
+            articles_file= newsletter_config.candidate_articles_file
         )
 
 

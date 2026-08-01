@@ -35,6 +35,10 @@ class ArticleRepository:
             articles_file
         )
 
+        if(len(records)==0):
+            return []
+
+
         return [
             article_type(**record)
             for record in records
@@ -57,7 +61,7 @@ class ArticleRepository:
             for article in articles
         ]
 
-        file_manager.save_jsonl_file(
+        file_manager.save_to_jsonl_file(
             articles_file,
             records,
         )
@@ -79,7 +83,7 @@ class ArticleRepository:
             for article in articles
         ]
 
-        file_manager.append_jsonl_file(
+        file_manager.append_to_jsonl_file(
             articles_file,
             records,
         )
@@ -111,7 +115,7 @@ class ArticleRepository:
             if record["link"] not in links_to_remove
         ]
 
-        file_manager.save_jsonl_file(
+        file_manager.save_to_jsonl_file(
             articles_file,
             filtered_records,
         )

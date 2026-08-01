@@ -95,7 +95,7 @@ def load_newsletter_config() -> NewsletterConfig:
                 newsletter["newsletter_profiles"],
             ),
             relevance_threshold=newsletter["relevance_threshold"],
-            retrieved_articles_file= _resolve_path(newsletter["retrieved_articles_file"]),
+            candidate_articles_file= _resolve_path(newsletter["candidate_articles_file"]),
             evaluated_articles_file= _resolve_path(newsletter["evaluated_articles_file"]),
             newsletters_file= _resolve_path(newsletter["newsletters_file"]),
             average_reading_speed_wpm= newsletter["average_reading_speed_wpm"],

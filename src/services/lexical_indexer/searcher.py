@@ -5,7 +5,7 @@ from whoosh import index
 from whoosh.qparser import MultifieldParser
 from whoosh.query import And, DateRange, Or, Term
 
-from src.models.articles import CandidateArticle
+from src.models.articles import RetrievedArticle
 
 
 def search(
@@ -14,7 +14,7 @@ def search(
     max_results: int,
     included_sources: list[str],
     covered_period_days: int,
-) -> list[CandidateArticle]:
+) -> list[RetrievedArticle]:
     """
     Search the lexical index for the given query.
 
@@ -72,7 +72,7 @@ def search(
         )
 
         return [
-            CandidateArticle(
+            RetrievedArticle(
                 title=hit["title"],
                 source=hit["source"],
                 link=hit["link"],

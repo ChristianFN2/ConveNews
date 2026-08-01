@@ -72,7 +72,7 @@ def update_index(
 
     ix = index.open_dir(index_dir)
 
-    indexed_links = _load_links(index_dir)
+    indexed_links = _load_links(ix)
 
     processed_links = {
         article.link
