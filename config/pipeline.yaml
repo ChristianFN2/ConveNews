@@ -1,9 +1,7 @@
 crawler:
   feed_urls_file: data/input/feed_urls.txt
-  collected_articles_file: data/output/collected_articles.jsonl
+  collected_articles_file: data/output/temp_collected_articles.jsonl
   extracted_articles_file: data/output/extracted_articles.jsonl
-  stats_file: data/output/crawler_stats.jsonl
-  state_file: data/_state/extraction_state.jsonl
   max_articles_per_feed: 700
   collection_window_days: 7
   extraction_retention_days: 365
@@ -35,13 +33,28 @@ llm:
   api_base: http://156.35.160.78:4000
   temperature: 0.1
   prompts:
-    interest_summary: src/llm/prompts/prompt_interest_summarizer.txt
-    query_generation: src/llm/prompts/prompt_query_generator.txt
-    relevance_evaluation: src/llm/prompts/prompt_relevance_evaluator.txt
+    interest_summary: src/services/llm/prompts/prompt_interest_summarizer.txt
+    query_generation: src/services/llm/prompts/prompt_query_generator.txt
+    relevance_evaluation: src/services/llm/prompts/prompt_relevance_evaluator.txt
 
 article_processor:
   selection_margin: 3
+  selected_articles_file: src/runners/dev/data/output/temp_selected_articles.jsonl
 
 newsletter:
-  max_articles: 5
   relevance_threshold: 5.0
+  newsletter_profiles: src/runners/dev/data/newsletter_profiles.jsonl
+  candidate_articles_file: src/runners/dev/data/output/temp_candidate_articles.jsonl
+  evaluated_articles_file: src/runners/dev/data/output/temp_evaluated_articles.jsonl
+  newsletters_file: src/runners/dev/data/output/newsletters.jsonl
+  average_reading_speed_wpm: 200
+  templates:
+    newsletter_template: src/services/newsletter/templates/newsletter.html
+    article_template: src/services/newsletter/templates/article.html
+
+sources:
+  sources_file: data/input/sources.jsonl
+
+application:
+  site_url: https://github.com/ChristianFN2/ConveNews
+  about_url: https://github.com/ChristianFN2/ConveNews#readme-ov-file

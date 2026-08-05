@@ -1,104 +1,52 @@
 """
-Development runner for testing the interest summarizer.
+Development runner for the interest summarizer.
 """
 
-import json
-from pathlib import Path
-
-from src.config.config_loader import load_config
-from src.llm.interest_summarizer import summarize_interests
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
-
-INPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "input"
-    / "user_interests.jsonl"
-)
-
-OUTPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "interest_summaries.jsonl"
-)
+from src.config.config_loader import load_llm_config, load_newsletter_config
+from src.services.llm.interest_summarizer import summarize_interests
+from src.repositories.profile_repository import ProfileRepository
+from src.llm.client_provider import create_llm_client
 
 
 def main() -> None:
     """
     Generate interest summaries for the input user profiles.
-
-    The generated summaries are written to a JSONL file and also printed
-    to the console for inspection.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    llm_config = load_llm_config()
+    newsletter_config = load_newsletter_config()
+
+    profile_repo = ProfileRepository()
+
+    newsletter_profiles = profile_repo.load_newsletter_profiles(
+        newsletter_profiles_file= newsletter_config.newsletter_profiles
+    )
+
+    client = create_llm_client(llm_config)
+    prompt = llm_config.prompts.interest_summary.read_text(
+        encoding="utf-8"
+    )
 
     try:
+        for profile in newsletter_profiles:
+            if not profile.is_initialization_pending:
+                continue
 
-        with (
-            open(INPUT_FILE, "r", encoding="utf-8") as infile,
-            open(OUTPUT_FILE, "w", encoding="utf-8") as outfile,
-        ):
+            summarized_interests = summarize_interests(
+                interest_description=profile.interest_description,
+                selected_keywords=profile.selected_keywords,
+                client=client,
+                prompt=prompt
+            )
 
-            for i, line in enumerate(infile, start=1):
-
-                try:
-                    profile = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-
-                print("=" * 80)
-                print(f"Profile {i}")
-                print()
-
-                print("Interest description:")
-                print(profile["interest_description"])
-                print()
-
-                print("Selected keywords:")
-                if profile["selected_keywords"]:
-                    print(", ".join(profile["selected_keywords"]))
-                else:
-                    print("(none)")
-                print()
-
-                response = summarize_interests(
-                    interest_description=profile["interest_description"],
-                    selected_keywords=profile["selected_keywords"],
-                    config=config.llm,
-                )
-
-                if response is None:
-                    print("Summary:")
-                    print("(generation failed)")
-                    print()
-                    continue
-
-                output_record = {
-                    **profile,
-                    "interest_summary": response.content,
-                    "model": response.model,
-                }
-
-                outfile.write(
-                    json.dumps(output_record, ensure_ascii=False)
-                )
-                outfile.write("\n")
-
-                print("Summary:")
-                print(response.content)
-                print()
-
-                print(f"Model: {response.model}")
-                print()
-
+            profile.interest_summary = summarized_interests
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
+        return
+    finally:
+        profile_repo.save_newsletter_profiles(
+            newsletter_profiles=newsletter_profiles,
+            newsletter_profiles_file= newsletter_config.newsletter_profiles
+        )
 
 
 if __name__ == "__main__":

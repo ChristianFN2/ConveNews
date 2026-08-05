@@ -5,23 +5,29 @@ This script loads the application configuration, opens the lexical
 index and allows interactive keyword searches.
 """
 
-from pathlib import Path
+from src.models.sources import Source
+from src.config.config_loader import load_lexical_indexer_config, load_source_config
+from src.services.lexical_indexer.searcher import search
 
-from src.config.config_loader import load_config
-from src.lexical_indexer.searcher import search
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
-
+from src.repositories.source_repository import SourceRepository
 
 def main() -> None:
     """
     Load the search configuration and perform interactive searches.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    indexer_config = load_lexical_indexer_config()
+    source_config = load_source_config()
+
+    source_repo = SourceRepository()
+
+    sources: list[Source] = source_repo.load_sources(
+        sources_file= source_config.sources_file
+    )
+
+    source_links = [
+        source.link
+        for source in sources
+    ]
 
     print("Lexical search ready (Ctrl+C to exit).")
 
@@ -33,8 +39,11 @@ def main() -> None:
                 continue
 
             results = search(
-                query,
-                config.lexical_indexer,
+                query_text= query,
+                index_dir= indexer_config.index_dir,
+                max_results= indexer_config.search.max_results,
+                included_sources= source_links,
+                covered_period_days= 365
             )
 
             if not results:
@@ -48,7 +57,7 @@ def main() -> None:
                 print(f"Title : {result.title}")
                 print(f"Source: {result.source}")
                 print(f"Link  : {result.link}")
-                print(f"Score : {result.score:.4f}")
+                print(f"Score : {result.lexical_score:.4f}")
 
             print("------------------------------")
             print()

@@ -1,28 +1,97 @@
 """
 Entry point for the crawling pipeline.
 
-This script loads the crawler configuration from the default configuration
+This script loads the crawler configuration
 file and executes the complete crawling pipeline.
 """
 
-from pathlib import Path
-
-from src.config.config_loader import load_config
-from src.crawler.main_crawler import crawl
-
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[2]
-    / "config"
-    / "pipeline.yaml"
-)
+from src.models.articles import Article, ExtractedArticle
+from src.config.config_loader import load_crawler_config
+from src.config.config_loader import load_source_config
+from src.services.crawler import rss_collector, content_extractor, extracted_articles_cleaner
+from src.repositories.article_repository import ArticleRepository
+from src.repositories.source_repository import SourceRepository
 
 
 def main() -> None:
-    """
-    Load the crawler configuration and execute the crawling pipeline.
-    """
-    config = load_config(DEFAULT_CONFIG_FILE)
-    crawl(config.crawler)
+    crawler_config = load_crawler_config()
+    source_config = load_source_config()
+
+    article_repo = ArticleRepository()
+    source_repo = SourceRepository()
+
+    prev_collected_articles = article_repo.load_articles(
+        articles_file=crawler_config.collected_articles_file,
+        article_type=Article
+    )
+
+    feed_urls = [
+        source.link
+        for source in source_repo.load_sources(
+            sources_file= source_config.sources_file
+        )
+    ]
+
+    new_collected_articles = (
+        rss_collector.collect_from_rss_feeds(
+            existing_articles=prev_collected_articles,
+            feed_urls=feed_urls,
+            max_articles_per_feed=crawler_config.max_articles_per_feed,
+            collection_window_days=crawler_config.collection_window_days,
+        )
+    )
+
+    article_repo.save_articles(
+        articles= new_collected_articles,
+        articles_file= crawler_config.collected_articles_file
+    )
+
+    prev_extracted_articles = article_repo.load_articles(
+        article_type= ExtractedArticle,
+        articles_file= crawler_config.extracted_articles_file
+    )
+
+    expired_articles = extracted_articles_cleaner.get_expired_articles(
+        prev_extracted_articles,
+        crawler_config.extraction_retention_days)
+    
+    article_repo.remove_articles(
+        articles_to_remove= expired_articles,
+        articles_file= crawler_config.extracted_articles_file
+    )
+
+    expired_links = {
+        article.link
+        for article in expired_articles
+    }
+
+    current_extracted_articles = [
+        article
+        for article in prev_extracted_articles
+        if article.link not in expired_links
+    ]
+
+    existing_links = {
+        article.link
+        for article in current_extracted_articles
+    }
+
+    articles_to_extract = [
+        article
+        for article in new_collected_articles
+        if article.link not in existing_links
+    ]
+
+    new_extracted_articles = (
+        content_extractor.extract_content_from_articles(
+            articles_to_extract
+        )
+    )
+
+    article_repo.append_articles(
+        articles= new_extracted_articles,
+        articles_file= crawler_config.extracted_articles_file
+    )
 
 
 if __name__ == "__main__":

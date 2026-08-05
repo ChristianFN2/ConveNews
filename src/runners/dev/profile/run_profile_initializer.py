@@ -1,5 +1,5 @@
-from runners.dev.profile.run_interest_summarizer import main as summarize_interests
-from runners.dev.profile.run_query_generator import main as generate_queries
+from src.runners.dev.profile.run_interest_summarizer import main as summarize_interests
+from src.runners.dev.profile.run_query_generator import main as generate_queries
 
 def main() -> None:
     summarize_interests()

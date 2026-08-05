@@ -2,162 +2,65 @@
 Development runner for testing article selection.
 """
 
-import json
-import time
-from pathlib import Path
+from src.models.articles import CandidateArticle
+from src.repositories.article_repository import ArticleRepository
+from src.repositories.profile_repository import ProfileRepository
+from src.services.article_processor.article_selector import select_candidate_articles
 
-from src.article_processor.article_selector import (
-    select_candidate_articles,
-)
-from src.config.config_loader import load_config
-from src.lexical_indexer.types import (
-    QueryResult,
-    RetrievedArticle,
-)
+from src.config.config_loader import load_article_processor_config, load_newsletter_config
 
-DEFAULT_CONFIG_FILE = (
-    Path(__file__).resolve().parents[3]
-    / "config"
-    / "pipeline.yaml"
-)
-
-INPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "retrieved_articles.jsonl"
-)
-
-OUTPUT_FILE = (
-    Path(__file__).resolve().parent
-    / "data"
-    / "output"
-    / "selected_articles.jsonl"
-)
 
 def main() -> None:
     """
     Select the best candidate articles for every user profile.
-
-    Candidate selection is performed independently for every target
-    language and the selected articles are written to a JSONL file.
     """
-    config = load_config(DEFAULT_CONFIG_FILE)
+    article_processor_config = load_article_processor_config()
+    newsletter_config = load_newsletter_config()
 
+    article_repo = ArticleRepository()
+    profile_repo = ProfileRepository()
+
+    candidate_articles = article_repo.load_articles(
+        articles_file= newsletter_config.candidate_articles_file,
+        article_type= CandidateArticle
+    )
+    profiles = profile_repo.load_newsletter_profiles(
+        newsletter_profiles_file= newsletter_config.newsletter_profiles
+    )
+
+    articles_by_profile: dict[int, list[CandidateArticle]] = {}
+    for article in candidate_articles:
+        articles_by_profile.setdefault(
+            article.profile_id,
+            []
+        ).append(article)
+
+    all_selected_articles: list[CandidateArticle] = []
     try:
+        for profile in profiles:
+            candidate_limit = (
+                profile.max_articles_included
+                + article_processor_config.selection_margin
+            )
 
-        with (
-            open(INPUT_FILE, "r", encoding="utf-8") as infile,
-            open(OUTPUT_FILE, "w", encoding="utf-8") as outfile,
-        ):
+            profile_articles = articles_by_profile.get(
+                profile.profile_id,
+                []
+            )
 
-            for i, line in enumerate(infile, start=1):
+            selected_articles = select_candidate_articles(
+                candidates= profile_articles,
+                max_articles= candidate_limit
+            )
 
-                try:
-                    record = json.loads(line)
-                except json.JSONDecodeError:
-                    print(f"Skipping invalid JSON line {i}.")
-                    continue
-
-                print("=" * 80)
-                print(f"Profile {i}")
-                print()
-
-                print("Interest summary:")
-                print(record["interest_summary"])
-                print()
-
-                selected_articles = {}
-
-                profile_start = time.perf_counter()
-
-                for language, query_results in (
-                    record["retrieval"].items()
-                ):
-
-                    print(f"[{language}]")
-
-                    parsed_query_results = []
-
-                    retrieved_count = 0
-
-                    for query_result in query_results:
-
-                        results = [
-                            RetrievedArticle(**article)
-                            for article in query_result["results"]
-                        ]
-
-                        retrieved_count += len(results)
-
-                        parsed_query_results.append(
-                            QueryResult(
-                                query=query_result["query"],
-                                results=results,
-                            )
-                        )
-
-                    candidate_limit = (
-                        config.newsletter.max_articles
-                        + config.article_processor.selection_margin
-                    )
-
-                    candidates = select_candidate_articles(
-                        query_results=parsed_query_results,
-                        max_articles=(
-                            candidate_limit
-                        ),
-                    )
-
-                    selected_articles[language] = [
-                        article.__dict__
-                        for article in candidates
-                    ]
-
-                    print(
-                        f"Retrieved articles: "
-                        f"{retrieved_count}"
-                    )
-                    print(
-                        f"Selected articles : "
-                        f"{len(candidates)}"
-                    )
-                    print()
-
-                elapsed = (
-                    time.perf_counter() - profile_start
-                )
-
-                output_record = {
-                    "user_id": record["user_id"],
-                    "profile_id": record["profile_id"],
-                    "profile_title": record["profile_title"],
-                    "target_language": record["target_language"],
-                    "interest_description": (
-                        record["interest_description"]
-                    ),
-                    "selected_keywords": record["selected_keywords"],
-                    "interest_summary": record["interest_summary"],
-                    "queries": record["queries"],
-                    "selected_articles": selected_articles,
-                }
-
-                outfile.write(
-                    json.dumps(
-                        output_record,
-                        ensure_ascii=False,
-                    )
-                )
-                outfile.write("\n")
-
-                print(
-                    f"Completed in {elapsed:.1f} s"
-                )
-                print()
-
-
+            all_selected_articles.extend(selected_articles)
     except KeyboardInterrupt:
-        print("\nExecution interrupted by user.")
+            print("\nExecution interrupted by user.")
+    finally:        
+        article_repo.save_articles(
+            articles= all_selected_articles,
+            articles_file= article_processor_config.selected_articles_file
+        )
 
 
 if __name__ == "__main__":
