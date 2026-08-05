@@ -173,7 +173,7 @@ def _build_articles_html(
     for article in articles:
 
         template_values = {
-            "ARTICLE_TITLE": article.title,
+            "ARTICLE_TITLE": article.translated_title,
             "ARTICLE_SUMMARY": article.article_summary,
             "ARTICLE_SOURCE": sources_by_link.get(article.source).name,
             "ARTICLE_URL": article.link,

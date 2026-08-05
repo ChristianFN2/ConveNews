@@ -91,7 +91,6 @@ def load_newsletter_config() -> NewsletterConfig:
 
     return NewsletterConfig(
             newsletter_profiles=_resolve_path(
-                PROJECT_ROOT,
                 newsletter["newsletter_profiles"],
             ),
             relevance_threshold=newsletter["relevance_threshold"],
@@ -99,8 +98,8 @@ def load_newsletter_config() -> NewsletterConfig:
             evaluated_articles_file= _resolve_path(newsletter["evaluated_articles_file"]),
             newsletters_file= _resolve_path(newsletter["newsletters_file"]),
             average_reading_speed_wpm= newsletter["average_reading_speed_wpm"],
-            newsletter_template= newsletter["templates"]["newsletter_template"],
-            article_template= newsletter["templates"]["article_template"],
+            newsletter_template= _resolve_path(newsletter["templates"]["newsletter_template"]),
+            article_template= _resolve_path(newsletter["templates"]["article_template"]),
         )
 
 def load_source_config() -> SourceConfig:

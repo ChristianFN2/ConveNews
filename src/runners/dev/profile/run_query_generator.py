@@ -32,6 +32,9 @@ def main() -> None:
 
     try:
         for profile in newsletter_profiles:
+            if not profile.is_initialization_pending:
+                continue
+
             profile_sources = source_repo.load_sources_by_links(
                 links=profile.included_sources,
                 sources_file= source_config.sources_file
@@ -47,6 +50,8 @@ def main() -> None:
                 prompt=prompt
             )
             profile.generated_queries = generated_queries
+            
+            profile.is_initialization_pending = False
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
         return

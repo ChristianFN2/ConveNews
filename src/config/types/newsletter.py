@@ -10,5 +10,5 @@ class NewsletterConfig:
     newsletters_file: Path
     average_reading_speed_wpm: int
 
-    newsletter_template: str
-    article_template: str
+    newsletter_template: Path
+    article_template: Path

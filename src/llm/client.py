@@ -7,7 +7,7 @@ import time
 from llama_index.llms.openai_like import OpenAILike
 from openai import APIConnectionError, APITimeoutError
 
-from config.types.llm import LLMConfig
+from src.config.types.llm import LLMConfig
 
 
 class LLMClient:
@@ -23,8 +23,7 @@ class LLMClient:
         self.llm_config = (
             llm_config
         )
-
-    _last_successful_model: str | None = None
+        self.last_successful_model: str | None = None
 
 
     def generate(
@@ -52,15 +51,13 @@ class LLMClient:
                 If the operation is interrupted by the user.
         """
 
-        global _last_successful_model
-
         models = list(self.llm_config.models)
 
         if (
-            _last_successful_model is not None
-            and _last_successful_model in models
+            self.last_successful_model is not None
+            and self.last_successful_model in models
         ):
-            index = models.index(_last_successful_model)
+            index = models.index(self.last_successful_model)
 
             models = (
                 models[index:]
@@ -84,7 +81,7 @@ class LLMClient:
 
                     response = llm.complete(prompt)
 
-                    _last_successful_model = model
+                    self.last_successful_model = model
                     print(f"Model '{model}' responded successfully.")
                     return response.text
 

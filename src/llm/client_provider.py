@@ -16,5 +16,5 @@ def create_llm_client(config: LLMConfig) -> LLMClient:
 
     return LLMClient(
         api_key=api_key,
-        config=config,
+        llm_config=config,
     )

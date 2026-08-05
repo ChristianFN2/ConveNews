@@ -19,18 +19,37 @@ def evaluate_relevance(
     prompt: str
 ) -> EvaluatedArticle:
     """
-    Evaluate the relevance of an article for a user profile and
-    generate a concise summary.
+    Evaluate an article for a user profile and generate a translated
+    title together with a personalized summary in the target language.
 
     Args:
+        candidate_article:
+            Candidate article to evaluate.
+
         article_content:
             Full article content.
 
         interest_summary:
-            Interest summary describing the user's interests.
+            Summary describing the user's interests.
+
+        target_language:
+            Language in which the title and summary should be generated.
+
+        generated_summary_words:
+            Approximate target length of the generated summary in words.
+
+        client:
+            LLM client used to generate the evaluation.
+
+        prompt:
+            Prompt template used for the evaluation.
 
     Returns:
-        The evaluated article
+        The evaluated article.
+
+    Raises:
+        json.JSONDecodeError:
+            If the LLM response does not contain valid JSON.
     """
 
     prompt = prompt.format(

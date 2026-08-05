@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from models.queries import SearchQuery
+from src.models.queries import SearchQuery
 
 @dataclass
 class NewsletterProfile:
@@ -18,4 +18,6 @@ class NewsletterProfile:
 
     is_initialization_pending: bool
     interest_summary: str | None
-    generated_queries: list[SearchQuery] = []
+    generated_queries: list[SearchQuery] = field(
+        default_factory=list
+    )

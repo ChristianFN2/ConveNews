@@ -2,6 +2,8 @@
 Development runner for testing article relevance evaluation.
 """
 
+from json import JSONDecodeError
+
 from src.models.articles import EvaluatedArticle, ExtractedArticle, CandidateArticle
 from src.repositories.article_repository import ArticleRepository
 from src.repositories.profile_repository import ProfileRepository
@@ -9,6 +11,7 @@ from src.llm.client_provider import create_llm_client
 from src.config.config_loader import load_llm_config, load_article_processor_config, load_newsletter_config, load_crawler_config
 from src.services.llm.relevance_evaluator import evaluate_relevance
 
+EVALUATION_RETRIES: int = 3
 
 def main() -> None:
     """
@@ -62,16 +65,27 @@ def main() -> None:
                     reading_time_minutes= profile.reading_time_minutes / profile.max_articles_included,
                     average_reading_speed_wpm= newsletter_config.average_reading_speed_wpm
                 )
-                evaluated_article = evaluate_relevance(
-                    candidate_article= article,
-                    article_content= extracted_by_link.get(article.link).content,
-                    interest_summary= profile.interest_summary,
-                    target_language= profile.target_language,
-                    generated_summary_words=generated_summary_words,
-                    client= client,
-                    prompt= prompt
-                )
-                evaluated_articles.append(evaluated_article)
+                for attempt in range(EVALUATION_RETRIES):
+                    try:
+                        evaluated_article = evaluate_relevance(
+                            candidate_article= article,
+                            article_content= extracted_by_link.get(article.link).content,
+                            interest_summary= profile.interest_summary,
+                            target_language= profile.target_language,
+                            generated_summary_words= generated_summary_words,
+                            client= client,
+                            prompt= prompt,
+                        )
+
+                        evaluated_articles.append(evaluated_article)
+                        break
+
+                    except JSONDecodeError:
+                        print(
+                            f"Failed to parse LLM response for "
+                            f"'{article.title}' "
+                            f"(attempt {attempt + 1}/{EVALUATION_RETRIES})."
+                        )
     except KeyboardInterrupt:
         print("\nExecution interrupted by user.")
     finally:

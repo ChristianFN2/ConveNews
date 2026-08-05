@@ -6,6 +6,7 @@ from whoosh.qparser import MultifieldParser
 from whoosh.query import And, DateRange, Or, Term
 
 from src.models.articles import RetrievedArticle
+from src.utils.datetime_utils import datetime_to_iso
 
 
 def search(
@@ -76,7 +77,7 @@ def search(
                 title=hit["title"],
                 source=hit["source"],
                 link=hit["link"],
-                published=hit["published"],
+                published=datetime_to_iso(hit["published"]),
                 detected_language=hit["detected_language"],
                 lexical_score=hit.score,
             )

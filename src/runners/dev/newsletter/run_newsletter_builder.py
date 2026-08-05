@@ -62,7 +62,14 @@ def main() -> None:
         newsletters_file= newsletter_config.newsletters_file
     )
 
-    built_newsletters: list[Newsletter] = {}
+    newsletter_template_str = newsletter_config.newsletter_template.read_text(
+        encoding="utf-8"
+    )
+    article_template_str = newsletter_config.article_template.read_text(
+        encoding="utf-8"
+    )
+
+    built_newsletters: list[Newsletter] = []
     for profile_id in articles_by_profile_id:
 
         profile_articles = articles_by_profile_id.get(profile_id)
@@ -79,8 +86,8 @@ def main() -> None:
         newsletter_content = build_newsletter(
             articles= final_profile_articles,
             profile= newsletter_profile,
-            newsletter_template= newsletter_config.newsletter_template,
-            article_template= newsletter_config.article_template,
+            newsletter_template= newsletter_template_str,
+            article_template= article_template_str,
             sources_by_link= sources_by_link,
             localization= LOCALIZATION[newsletter_profile.target_language],
             site_url= app_config.site_url,
@@ -97,7 +104,10 @@ def main() -> None:
             delivery_status= DeliveryStatus.PENDING
         ))
 
-    newsletter_repo.append_newsletters(built_newsletters)
+    newsletter_repo.append_newsletters(
+        newsletters= built_newsletters,
+        newsletters_file= newsletter_config.newsletters_file
+    )
 
 
 def _get_final_articles(
