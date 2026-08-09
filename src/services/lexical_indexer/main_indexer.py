@@ -71,9 +71,7 @@ def update_index(
         return
 
     ix = index.open_dir(index_dir)
-
     indexed_links = _load_links(ix)
-
     processed_links = {
         article.link
         for article in processed_articles
@@ -91,9 +89,8 @@ def update_index(
     )
 
     writer = ix.writer()
-
     for article in articles_to_add:
-        writer.add_document(
+        writer.update_document(
             link=article.link,
             title=article.title,
             processed_title=article.processed_title,
@@ -102,14 +99,13 @@ def update_index(
             detected_language=article.detected_language,
             processed_content=article.processed_content,
         )
-
     for link in links_to_remove:
         writer.delete_by_term(
-            "link",
-            link,
+            fieldname="link",
+            text=link,
         )
-
-    writer.commit()
+    
+    writer.commit(optimize=True)
 
 
 def _load_links(
